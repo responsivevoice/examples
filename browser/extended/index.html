@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../shared/demo-base.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../shared/api-key-scaffold.css">
+  <script src="../shared/api-key-scaffold.js"></script>
+  <title>ResponsiveVoice - Extended Usage Example</title>
+</head>
+<body>
+  <div class="container">
+    <a href="../../" class="back-link">&larr; Back to Examples</a>
+    <div class="header">
+      <img src="../../favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+      <h1>Extended Usage Example</h1>
+    </div>
+    <p class="subtitle">Test text-to-speech functionality with the modern <code>@responsivevoice/core</code> package</p>
+
+    <!-- Status Card -->
+    <div class="card" id="statusCard">
+      <h2>
+        Status
+        <span id="statusBadge" class="status-badge pending">Initializing...</span>
+        <span id="demoBadge" class="status-badge demo" hidden>Demo Mode</span>
+      </h2>
+      <div class="card-body">
+        <div class="grid-2">
+          <div>
+            <div class="info-item">
+              <span class="info-label">Web Speech API</span>
+              <span id="webSpeechSupport" class="info-value">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Browser Voices</span>
+              <span id="browserVoiceCount" class="info-value">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">ResponsiveVoice Voices</span>
+              <span id="rvVoiceCount" class="info-value">-</span>
+            </div>
+          </div>
+          <div>
+            <div class="info-item">
+              <span class="info-label">Browser</span>
+              <span id="browserInfo" class="info-value">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">OS</span>
+              <span id="osInfo" class="info-value">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Device Type</span>
+              <span id="deviceType" class="info-value">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TTS Controls -->
+    <div class="card" id="ttsCard">
+      <h2>Text-to-Speech</h2>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="textInput">Text to speak</label>
+          <textarea id="textInput" placeholder="Enter text to speak...">Hello! Welcome to ResponsiveVoice. This is a demonstration of modern text-to-speech technology that works across all browsers. The voice consists of sound made by a human being using the vocal folds for talking, singing, laughing, crying, screaming etc. The human voice is specifically a part of human sound production in which the vocal folds (vocal cords) are the primary sound source.</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="voiceSelect">Voice</label>
+          <select id="voiceSelect" disabled>
+            <option value="">Loading voices...</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Rate: <span id="rateValue">1.0</span></label>
+            <input type="range" id="rateInput" min="0.1" max="2" step="0.1" value="1">
+          </div>
+          <div class="form-group">
+            <label>Pitch: <span id="pitchValue">1.0</span></label>
+            <input type="range" id="pitchInput" min="0.1" max="2" step="0.1" value="1">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Volume: <span id="volumeValue">1.0</span></label>
+          <input type="range" id="volumeInput" min="0" max="1" step="0.1" value="1">
+        </div>
+
+        <div class="button-group">
+          <button type="button" id="speakBtn" class="primary" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><title>Play</title><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Speak
+          </button>
+          <button type="button" id="pauseBtn" class="secondary" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><title>Pause</title><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+            Pause
+          </button>
+          <button type="button" id="resumeBtn" class="secondary" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><title>Resume</title><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Resume
+          </button>
+          <button type="button" id="cancelBtn" class="secondary" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><title>Stop</title><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speech Progress & State -->
+    <div class="card" id="progressCard">
+      <h2>Speech Progress</h2>
+      <div class="card-body">
+        <div class="state-pills">
+          <span id="pillIdle" class="state-pill">Idle</span>
+          <span id="pillPlaying" class="state-pill">Playing</span>
+          <span id="pillPaused" class="state-pill">Paused</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div class="progress-info">
+          <span id="partCounter">No speech active</span>
+          <span id="durationEstimate">-</span>
+        </div>
+        <div class="state-details">
+          <div class="detail-item">
+            <span class="detail-label">Engine:</span>
+            <span id="engineDisplay" class="detail-value">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Est. Duration:</span>
+            <span id="estDuration" class="detail-value">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration (collapsed by default) -->
+    <div class="card collapsed" id="configCard">
+      <h2>Configuration</h2>
+      <div class="card-body">
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="forceFallbackCheckbox">
+            <label for="forceFallbackCheckbox" style="margin: 0;">Force Fallback Mode (always use HTTP audio)</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="transportSelect">Audio Transport</label>
+          <select id="transportSelect">
+            <option value="chunks" selected>Chunks (default — full download per chunk)</option>
+            <option value="stream">Audio Stream (HTTP Stream with MSE)</option>
+            <option value="websocket">WebSocket (persistent connection with MSE)</option>
+          </select>
+        </div>
+        <div class="form-group" id="autoConnectGroup" style="display: none;">
+          <div class="checkbox-group">
+            <input type="checkbox" id="autoConnectCheckbox">
+            <label for="autoConnectCheckbox" style="margin: 0;">Auto-Connect WebSocket (open connection at init)</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="debugCheckbox" checked>
+            <label for="debugCheckbox" style="margin: 0;">Enable Debug Logging (console output)</label>
+          </div>
+        </div>
+        <button type="button" id="reinitBtn" class="secondary">Re-initialize with new settings</button>
+      </div>
+    </div>
+
+    <!-- Voice Explorer (collapsed by default) -->
+    <div class="card collapsed" id="voiceExplorerCard">
+      <h2>Voice Explorer <span id="voiceExplorerCount" class="voice-count"></span></h2>
+      <div class="card-body">
+        <div class="section-label">ResponsiveVoice Voices</div>
+        <div class="voice-filters">
+          <div class="form-group">
+            <label for="voiceSearch">Search</label>
+            <input type="text" id="voiceSearch" placeholder="Search by name...">
+          </div>
+          <div class="form-group">
+            <label for="langFilter">Language</label>
+            <select id="langFilter">
+              <option value="">All Languages</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <div class="filter-pills">
+              <button type="button" class="filter-pill active" data-filter="all">All</button>
+              <button type="button" class="filter-pill" data-filter="standard">Standard</button>
+              <button type="button" class="filter-pill" data-filter="byok">BYOK</button>
+            </div>
+          </div>
+        </div>
+        <div id="rvVoiceList" class="voice-list">
+          <div class="voice-item"><span class="voice-name">Loading...</span></div>
+        </div>
+
+        <div class="section-label" style="margin-top: 1.5rem; cursor: pointer;" id="browserVoicesToggle">
+          Browser Voices (<span id="browserVoiceListCount">0</span>) <span id="browserVoicesChevron" style="font-size: 0.625rem;">&#9654;</span>
+        </div>
+        <div id="browserVoiceList" class="voice-list" style="display: none;">
+          <div class="voice-item"><span class="voice-name">Loading...</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Chunking Lab (collapsed by default) -->
+    <div class="card collapsed" id="textProcessingCard">
+      <h2>Text Chunking Lab</h2>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="chunkInput">Input text</label>
+          <textarea id="chunkInput" style="min-height: 70px;">The product costs $49.99 and we sold 1,234 units in Q3. The CEO earned &pound;2.5M while the CFO made &euro;1.8M.</textarea>
+        </div>
+        <div class="form-group">
+          <label>Character limit: <span id="chunkLimitValue">100</span></label>
+          <input type="range" id="chunkLimitSlider" min="50" max="300" step="10" value="100">
+        </div>
+        <div class="button-group" style="margin-bottom: 0.75rem;">
+          <button type="button" id="chunkBtn" class="secondary">Chunk</button>
+          <button type="button" id="speakChunksBtn" class="primary" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><title>Play</title><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Speak Chunks
+          </button>
+        </div>
+        <div class="section-label">Chunks</div>
+        <div id="chunkOutput" class="chunk-list">
+          <div class="chunk-item"><span class="chunk-text">Click "Chunk" to split text</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Replacement Rules (collapsed by default) -->
+    <div class="card collapsed" id="replacementCard">
+      <h2>Text Replacement Rules</h2>
+      <div class="card-body">
+        <table class="rules-table" id="rulesTable">
+          <thead>
+            <tr>
+              <th>Search</th>
+              <th>Replace With</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rulesBody"></tbody>
+        </table>
+        <div class="add-rule-form">
+          <div class="form-group">
+            <label for="newRuleSearch">Search pattern</label>
+            <input type="text" id="newRuleSearch" placeholder="e.g. API">
+          </div>
+          <div class="form-group">
+            <label for="newRuleReplace">Replacement</label>
+            <input type="text" id="newRuleReplace" placeholder="e.g. A P I">
+          </div>
+          <button type="button" id="addRuleBtn" class="secondary">Add</button>
+        </div>
+        <div class="button-group">
+          <button type="button" id="applyRulesBtn" class="primary">Apply to RV</button>
+          <button type="button" id="clearRulesBtn" class="secondary">Clear All</button>
+        </div>
+
+        <div class="replacement-test">
+          <div class="section-label">Test Replacements</div>
+          <div class="form-group">
+            <label for="testReplacementInput">Test input</label>
+            <input type="text" id="testReplacementInput" value="The API documentation for ResponsiveVoice is available, e.g. at our website.">
+          </div>
+          <div class="section-label">Result</div>
+          <div id="testReplacementOutput" class="processing-output">Apply rules first, then type to test</div>
+          <button type="button" id="speakReplacementBtn" class="primary" disabled style="margin-top: 0.75rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><title>Play</title><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Speak Result
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Output Device (collapsed by default) -->
+    <div class="card collapsed" id="outputDeviceCard">
+      <h2>Audio Output Device</h2>
+      <div class="card-body">
+        <div id="devicePermissionPrompt">
+          <p style="font-size: 0.875rem; margin-bottom: 0.75rem;">Device enumeration requires microphone permission to reveal device labels.</p>
+          <button type="button" id="requestDevicePermissionBtn" class="primary">Allow &amp; Load Devices</button>
+        </div>
+        <div id="deviceControls" style="display: none;">
+          <div class="form-group">
+            <label for="outputDeviceSelect">Output device</label>
+            <select id="outputDeviceSelect">
+              <option value="">Default</option>
+            </select>
+          </div>
+          <div class="button-group">
+            <button type="button" id="refreshDevicesBtn" class="secondary">Refresh Devices</button>
+          </div>
+        </div>
+        <p class="device-note">Only works when speech routes through the fallback (HTTP audio) engine. Most voices prefer native TTS by default, which ignores this setting. To test: enable "Force Fallback Mode" in Configuration and re-initialize, or pick a voice that is fallback-only. Chrome/Edge only (setSinkId).</p>
+      </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="card" id="eventLogCard">
+      <h2>Event Log</h2>
+      <div class="card-body">
+        <div id="eventLog" class="event-log">
+          <div class="event">
+            <span class="timestamp">[--:--:--]</span>
+            <span class="event-name">Waiting for initialization...</span>
+          </div>
+        </div>
+        <button type="button" id="clearLogBtn" class="secondary" style="margin-top: 1rem;">Clear Log</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Load ResponsiveVoice from CDN -->
+  <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
+  <script>
+    // IIFE auto-creates an instance on window.responsiveVoice
+    const rv_instance = window.responsiveVoice;
+
+    // ========================================================================
+    // DOM Elements
+    // ========================================================================
+
+    // Status
+    const statusBadge = document.getElementById('statusBadge');
+    const webSpeechSupport = document.getElementById('webSpeechSupport');
+    const browserVoiceCount = document.getElementById('browserVoiceCount');
+    const rvVoiceCount = document.getElementById('rvVoiceCount');
+    const browserInfo = document.getElementById('browserInfo');
+    const osInfo = document.getElementById('osInfo');
+    const deviceType = document.getElementById('deviceType');
+
+    // TTS Controls
+    const textInput = document.getElementById('textInput');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const rateInput = document.getElementById('rateInput');
+    const pitchInput = document.getElementById('pitchInput');
+    const volumeInput = document.getElementById('volumeInput');
+    const rateValue = document.getElementById('rateValue');
+    const pitchValue = document.getElementById('pitchValue');
+    const volumeValue = document.getElementById('volumeValue');
+    const speakBtn = document.getElementById('speakBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    // Speech Progress
+    const pillIdle = document.getElementById('pillIdle');
+    const pillPlaying = document.getElementById('pillPlaying');
+    const pillPaused = document.getElementById('pillPaused');
+    const progressFill = document.getElementById('progressFill');
+    const partCounter = document.getElementById('partCounter');
+    const engineDisplay = document.getElementById('engineDisplay');
+    const estDuration = document.getElementById('estDuration');
+
+    // Configuration
+    const forceFallbackCheckbox = document.getElementById('forceFallbackCheckbox');
+    const transportSelect = document.getElementById('transportSelect');
+    const autoConnectGroup = document.getElementById('autoConnectGroup');
+    const autoConnectCheckbox = document.getElementById('autoConnectCheckbox');
+    const debugCheckbox = document.getElementById('debugCheckbox');
+    const reinitBtn = document.getElementById('reinitBtn');
+
+    // Show/hide autoConnect toggle based on transport selection
+    transportSelect.addEventListener('change', () => {
+      const isWebSocket = transportSelect.value === 'websocket';
+      autoConnectGroup.style.display = isWebSocket ? '' : 'none';
+      if (!isWebSocket) autoConnectCheckbox.checked = false;
+    });
+
+    // Voice Explorer
+    const voiceExplorerCount = document.getElementById('voiceExplorerCount');
+    const voiceSearch = document.getElementById('voiceSearch');
+    const langFilter = document.getElementById('langFilter');
+    const rvVoiceList = document.getElementById('rvVoiceList');
+    const browserVoiceList = document.getElementById('browserVoiceList');
+    const browserVoiceListCount = document.getElementById('browserVoiceListCount');
+    const browserVoicesToggle = document.getElementById('browserVoicesToggle');
+    const browserVoicesChevron = document.getElementById('browserVoicesChevron');
+    const filterPills = document.querySelectorAll('.filter-pill');
+
+    // Text Processing
+    const chunkInput = document.getElementById('chunkInput');
+    const chunkLimitSlider = document.getElementById('chunkLimitSlider');
+    const chunkLimitValue = document.getElementById('chunkLimitValue');
+    const chunkBtn = document.getElementById('chunkBtn');
+    const speakChunksBtn = document.getElementById('speakChunksBtn');
+    const chunkOutput = document.getElementById('chunkOutput');
+
+    // Text Replacements
+    const rulesBody = document.getElementById('rulesBody');
+    const newRuleSearch = document.getElementById('newRuleSearch');
+    const newRuleReplace = document.getElementById('newRuleReplace');
+    const addRuleBtn = document.getElementById('addRuleBtn');
+    const applyRulesBtn = document.getElementById('applyRulesBtn');
+    const clearRulesBtn = document.getElementById('clearRulesBtn');
+    const testReplacementInput = document.getElementById('testReplacementInput');
+    const testReplacementOutput = document.getElementById('testReplacementOutput');
+    const speakReplacementBtn = document.getElementById('speakReplacementBtn');
+
+    // Audio Output Device
+    const devicePermissionPrompt = document.getElementById('devicePermissionPrompt');
+    const deviceControls = document.getElementById('deviceControls');
+    const requestDevicePermissionBtn = document.getElementById('requestDevicePermissionBtn');
+    const outputDeviceSelect = document.getElementById('outputDeviceSelect');
+    const refreshDevicesBtn = document.getElementById('refreshDevicesBtn');
+
+    // Event Log
+    const eventLog = document.getElementById('eventLog');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+
+    // ========================================================================
+    // State
+    // ========================================================================
+
+    let rv = null;
+    let currentTypeFilter = 'all';
+    let replacementRules = [
+      { searchvalue: 'API', newvalue: 'A P I' },
+      { searchvalue: 'e.g.', newvalue: 'for example' },
+      { searchvalue: 'ResponsiveVoice', newvalue: 'Responsive Voice' },
+    ];
+    // Text replacements are managed via rv.setTextReplacements() and rv.applyTextReplacements()
+
+    // ========================================================================
+    // Collapsible Cards
+    // ========================================================================
+
+    document.querySelectorAll('.card h2').forEach(h2 => {
+      h2.addEventListener('click', (e) => {
+        // Don't toggle if clicking on a badge/child element that has its own action
+        if (e.target !== h2 && !h2.contains(e.target)) return;
+        h2.closest('.card').classList.toggle('collapsed');
+      });
+    });
+
+    // ========================================================================
+    // Logging
+    // ========================================================================
+
+    function log(eventName, data = null) {
+      const now = new Date();
+      const timestamp = now.toTimeString().split(' ')[0];
+      const entry = document.createElement('div');
+      entry.className = 'event';
+      entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> <span class="event-name">${eventName}</span>${data ? ` <span class="event-data">${JSON.stringify(data)}</span>` : ''}`;
+      eventLog.appendChild(entry);
+      eventLog.scrollTop = eventLog.scrollHeight;
+    }
+
+    // ========================================================================
+    // Platform Info
+    // ========================================================================
+
+    function updatePlatformInfo() {
+      const platform = rv_instance.getPlatformInfo();
+      const versionInfo = rv_instance.getPlatformVersionInfo();
+
+      webSpeechSupport.textContent = platform.supportsWebSpeech ? 'Yes' : 'No';
+      webSpeechSupport.className = `info-value ${platform.supportsWebSpeech ? 'yes' : 'no'}`;
+
+      browserInfo.textContent = `${versionInfo.browser} ${versionInfo.browserVersion}`;
+      osInfo.textContent = `${versionInfo.os} ${versionInfo.osVersion}`;
+      deviceType.textContent = versionInfo.deviceType;
+
+      log('Platform detected', versionInfo);
+    }
+
+    // ========================================================================
+    // Speech Progress & State
+    // ========================================================================
+
+    let speechState = { playing: false, paused: false, currentPart: 0, totalParts: 0 };
+
+    function getEngineLabel() {
+      if (!rv) return '-';
+      if (rv.isForceFallback()) return 'Fallback (HTTP) — forced';
+
+      const selectedVoice = voiceSelect.value;
+      if (!selectedVoice) return rv.fallbackMode ? 'Fallback (HTTP)' : 'Native TTS';
+
+      const resolved = rv.voiceResolver.resolve(selectedVoice);
+      if (resolved?.systemVoice) return 'Native TTS';
+      if (resolved?.fallbackVoice) return `Fallback (HTTP) — ${resolved.fallbackVoice.service || 'server'}`;
+      return rv.fallbackMode ? 'Fallback (HTTP)' : 'Native TTS';
+    }
+
+    function updateStatePills() {
+      pillIdle.className = !speechState.playing ? 'state-pill active-green' : 'state-pill';
+      pillPlaying.className = speechState.playing && !speechState.paused ? 'state-pill active-green' : 'state-pill';
+      pillPaused.className = speechState.paused ? 'state-pill active-amber' : 'state-pill';
+    }
+
+    function updateProgressBar() {
+      if (speechState.totalParts > 0) {
+        const pct = (speechState.currentPart / speechState.totalParts) * 100;
+        progressFill.style.width = `${pct}%`;
+        partCounter.textContent = `Part ${speechState.currentPart} of ${speechState.totalParts}`;
+      } else {
+        progressFill.style.width = '0%';
+        partCounter.textContent = 'No speech active';
+      }
+    }
+
+    function updateStateDisplay() {
+      updateStatePills();
+      updateProgressBar();
+      engineDisplay.textContent = getEngineLabel();
+    }
+
+    function updateDurationEstimate() {
+      if (!rv?.isReady()) return;
+      const text = textInput.value.trim();
+      if (!text) {
+        estDuration.textContent = '-';
+        return;
+      }
+      const rate = parseFloat(rateInput.value);
+      const selectedVoice = voiceSelect.value;
+      let isFallback = rv.isForceFallback();
+      if (!isFallback && selectedVoice) {
+        const resolved = rv.voiceResolver.resolve(selectedVoice);
+        isFallback = !resolved?.systemVoice && !!resolved?.fallbackVoice;
+      }
+      const ms = rv.getEstimatedTimeLength(text, 1 / Math.max(0.1, rate));
+      estDuration.textContent = `${(ms / 1000).toFixed(1)}s`;
+    }
+
+    function resetSpeechState() {
+      speechState = { playing: false, paused: false, currentPart: 0, totalParts: 0 };
+      updateStateDisplay();
+    }
+
+    // ========================================================================
+    // Voice Explorer
+    // ========================================================================
+
+    function renderVoiceExplorer() {
+      if (!rv?.isReady()) {
+        rvVoiceList.innerHTML = '<div class="voice-item"><span class="voice-name">Waiting for initialization...</span></div>';
+        return;
+      }
+
+      const voices = rv.getVoices();
+      const searchTerm = voiceSearch.value.toLowerCase();
+      const langValue = langFilter.value;
+
+      const filtered = voices.filter(v => {
+        if (searchTerm && !v.name.toLowerCase().includes(searchTerm) && !(v.lang || '').toLowerCase().includes(searchTerm)) return false;
+        if (langValue && v.lang !== langValue) return false;
+        if (currentTypeFilter === 'standard' && v.isByok) return false;
+        if (currentTypeFilter === 'byok' && !v.isByok) return false;
+        return true;
+      });
+
+      voiceExplorerCount.textContent = `(${filtered.length} of ${voices.length})`;
+
+      if (filtered.length === 0) {
+        rvVoiceList.innerHTML = '<div class="voice-item"><span class="voice-name">No matching voices</span></div>';
+        return;
+      }
+
+      const resolver = rv.voiceResolver;
+      rvVoiceList.innerHTML = filtered.map(voice => {
+        const resolved = resolver.resolve(voice.name);
+        const isNative = !!resolved?.systemVoice;
+        const isFallback = !!resolved?.fallbackVoice;
+        const engineTag = isNative
+          ? '<span class="voice-tag native">Native</span>'
+          : isFallback
+            ? '<span class="voice-tag fallback">Fallback</span>'
+            : '';
+        return `
+        <div class="voice-item">
+          <div>
+            <div class="voice-name">${escapeHtml(voice.name)}</div>
+            <div class="voice-lang">${escapeHtml(voice.lang || '')}</div>
+          </div>
+          <div class="voice-tags">
+            ${engineTag}
+            ${voice.gender ? `<span class="voice-tag gender">${escapeHtml(voice.gender)}</span>` : ''}
+            ${voice.isByok ? `<span class="voice-tag byok">${escapeHtml(voice.provider || 'BYOK')}</span>` : ''}
+            <button type="button" class="voice-preview-btn" onclick="previewVoice('${escapeAttr(voice.name)}')">Preview</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function populateLanguageFilter() {
+      if (!rv?.isReady()) return;
+      const voices = rv.getVoices();
+      const langs = [...new Set(voices.map(v => v.lang).filter(Boolean))].sort();
+      langFilter.innerHTML = '<option value="">All Languages</option>' +
+        langs.map(l => `<option value="${escapeAttr(l)}">${escapeHtml(l)}</option>`).join('');
+    }
+
+    function previewVoice(voiceName) {
+      if (!rv?.isReady()) return;
+      rv.cancel();
+      rv.speak('Hello, this is a preview of this voice.', voiceName, {
+        rate: parseFloat(rateInput.value),
+        pitch: parseFloat(pitchInput.value),
+        volume: parseFloat(volumeInput.value),
+      });
+      log('Voice preview', { voice: voiceName });
+    }
+
+    function updateBrowserVoices() {
+      if (!rv?.isReady()) {
+        browserVoiceList.innerHTML = '<div class="voice-item"><span class="voice-name">Waiting for initialization...</span></div>';
+        return;
+      }
+
+      const voices = rv.getBrowserVoices();
+      browserVoiceCount.textContent = voices.length;
+      browserVoiceListCount.textContent = voices.length;
+
+      if (voices.length === 0) {
+        browserVoiceList.innerHTML = '<div class="voice-item"><span class="voice-name">No browser voices available</span></div>';
+        return;
+      }
+
+      browserVoiceList.innerHTML = voices.map(voice => `
+        <div class="voice-item">
+          <div>
+            <div class="voice-name">${escapeHtml(voice.name)}</div>
+            <div class="voice-lang">${escapeHtml(voice.lang)}</div>
+          </div>
+          <div class="voice-tags">
+            ${voice.localService ? '<span class="voice-tag local">Local</span>' : ''}
+            ${voice.default ? '<span class="voice-tag native">Default</span>' : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ========================================================================
+    // Text Processing Lab
+    // ========================================================================
+
+    let lastChunks = [];
+
+    function runChunking() {
+      const text = chunkInput.value;
+      if (!text.trim()) {
+        chunkOutput.innerHTML = '<div class="chunk-item"><span class="chunk-text">Enter text above</span></div>';
+        lastChunks = [];
+        speakChunksBtn.disabled = true;
+        return;
+      }
+
+      const limit = parseInt(chunkLimitSlider.value, 10);
+      if (rv) rv.setCharacterLimit(limit);
+      const chunks = rv ? rv.chunkText(text, { characterLimit: limit }) : [];
+      lastChunks = chunks;
+
+      if (chunks.length === 0) {
+        chunkOutput.innerHTML = '<div class="chunk-item"><span class="chunk-text">No chunks produced</span></div>';
+        speakChunksBtn.disabled = true;
+        return;
+      }
+
+      chunkOutput.innerHTML = chunks.map(c => `
+        <div class="chunk-item">
+          <div class="chunk-header">
+            <span>Chunk ${c.index + 1} of ${c.total}</span>
+            <span>${c.text.length} chars${c.isLast ? ' (last)' : ''}</span>
+          </div>
+          <div class="chunk-text">${escapeHtml(c.text)}</div>
+        </div>
+      `).join('');
+      speakChunksBtn.disabled = !rv?.isReady();
+    }
+
+    function speakChunks() {
+      if (!rv?.isReady() || lastChunks.length === 0) return;
+      rv.cancel();
+      const voice = voiceSelect.value;
+      const params = {
+        rate: parseFloat(rateInput.value),
+        pitch: parseFloat(pitchInput.value),
+        volume: parseFloat(volumeInput.value),
+      };
+      // Speak full text — RV will chunk it internally, but this shows the user
+      // they can hear what the chunking algorithm produces
+      const fullText = lastChunks.map(c => c.text).join(' ');
+      rv.speak(fullText, voice, params);
+      log('Speak chunked text', { chunks: lastChunks.length });
+    }
+
+    // ========================================================================
+    // Text Replacement Rules
+    // ========================================================================
+
+    function renderRulesTable() {
+      if (replacementRules.length === 0) {
+        rulesBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">No rules defined</td></tr>';
+        return;
+      }
+
+      rulesBody.innerHTML = replacementRules.map((rule, i) => `
+        <tr>
+          <td><code>${escapeHtml(rule.searchvalue)}</code></td>
+          <td><code>${escapeHtml(rule.newvalue)}</code></td>
+          <td><button type="button" class="delete-btn" onclick="deleteRule(${i})">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function addRule() {
+      const search = newRuleSearch.value.trim();
+      const replace = newRuleReplace.value.trim();
+      if (!search) return;
+      replacementRules.push({ searchvalue: search, newvalue: replace });
+      newRuleSearch.value = '';
+      newRuleReplace.value = '';
+      renderRulesTable();
+      updateLocalReplacements();
+      log('Rule added', { search, replace });
+    }
+
+    function deleteRule(index) {
+      const removed = replacementRules.splice(index, 1)[0];
+      renderRulesTable();
+      updateLocalReplacements();
+      log('Rule deleted', removed);
+    }
+
+    function applyRulesToRV() {
+      if (!rv) return;
+      rv.setTextReplacements(replacementRules.length > 0 ? replacementRules : null);
+      log('Text replacements applied to RV', { count: replacementRules.length });
+    }
+
+    function clearAllRules() {
+      replacementRules = [];
+      renderRulesTable();
+      updateLocalReplacements();
+      if (rv) rv.setTextReplacements(null);
+      testReplacementOutput.textContent = '';
+      log('All replacement rules cleared');
+    }
+
+    function updateLocalReplacements() {
+      if (rv) rv.setTextReplacements(replacementRules.length > 0 ? replacementRules : null);
+      runTestReplacement();
+    }
+
+    function runTestReplacement() {
+      const text = testReplacementInput.value;
+      if (!text || replacementRules.length === 0) {
+        testReplacementOutput.textContent = text || '';
+        speakReplacementBtn.disabled = true;
+        return;
+      }
+      testReplacementOutput.textContent = rv ? rv.applyTextReplacements(text) : text;
+      speakReplacementBtn.disabled = !rv?.isReady();
+    }
+
+    function speakReplacementResult() {
+      if (!rv?.isReady()) return;
+      const text = testReplacementOutput.textContent;
+      if (!text) return;
+      rv.cancel();
+      const voice = voiceSelect.value;
+      rv.speak(text, voice, {
+        rate: parseFloat(rateInput.value),
+        pitch: parseFloat(pitchInput.value),
+        volume: parseFloat(volumeInput.value),
+      });
+      log('Speak replacement result', { length: text.length });
+    }
+
+    // ========================================================================
+    // Audio Output Device
+    // ========================================================================
+
+    async function requestDevicePermission() {
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        devicePermissionPrompt.innerHTML = '<p style="font-size:0.875rem;color:var(--error)">Not supported in this browser.</p>';
+        return;
+      }
+
+      try {
+        // Check if permission is already granted before prompting
+        let needsPrompt = true;
+        if (navigator.permissions?.query) {
+          const status = await navigator.permissions.query({ name: 'microphone' });
+          needsPrompt = status.state !== 'granted';
+        }
+
+        if (needsPrompt) {
+          // Request temporary audio permission to unlock device labels
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          for (const track of stream.getTracks()) { track.stop(); }
+        }
+        log('Microphone permission granted — loading devices');
+      } catch (_) {
+        log('Microphone permission denied — device labels may be hidden');
+      }
+
+      // Show controls, hide prompt
+      devicePermissionPrompt.style.display = 'none';
+      deviceControls.style.display = '';
+      await loadOutputDevices();
+    }
+
+    async function loadOutputDevices() {
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        outputDeviceSelect.innerHTML = '<option value="">Not supported in this browser</option>';
+        outputDeviceSelect.disabled = true;
+        return;
+      }
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const outputs = devices.filter(d => d.kind === 'audiooutput');
+
+        outputDeviceSelect.innerHTML = '<option value="">Default</option>';
+        for (const device of outputs) {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.textContent = device.label || `Device ${device.deviceId.slice(0, 8)}...`;
+          outputDeviceSelect.appendChild(option);
+        }
+
+        // Highlight current
+        if (rv) {
+          const current = rv.getOutputDevice();
+          if (current) outputDeviceSelect.value = current;
+        }
+
+        log('Output devices loaded', { count: outputs.length });
+      } catch (err) {
+        outputDeviceSelect.innerHTML = '<option value="">Device enumeration failed</option>';
+        outputDeviceSelect.disabled = true;
+        log('Output device error', { message: err.message });
+      }
+    }
+
+    // ========================================================================
+    // Voice Select (main TTS dropdown)
+    // ========================================================================
+
+    function updateVoiceSelect() {
+      if (!rv?.isReady()) return;
+
+      // In demo mode there are no API-resolved voices — native browser voices
+      // are used via the Web Speech API. Lock the dropdown and signal this.
+      if (rv.isDemoMode()) {
+        voiceSelect.innerHTML =
+          '<option value="" disabled selected>Browser default voice — Demo Mode</option>';
+        voiceSelect.disabled = true;
+        rvVoiceCount.textContent = 0;
+        speakBtn.disabled = false;
+        return;
+      }
+
+      const voices = rv.getVoices();
+      rvVoiceCount.textContent = voices.length;
+
+      const standardVoices = voices.filter(v => !v.isByok);
+      const byokVoices = voices.filter(v => v.isByok);
+
+      const byokByProvider = {};
+      for (const voice of byokVoices) {
+        const group = voice.provider || 'Premium';
+        if (!byokByProvider[group]) byokByProvider[group] = [];
+        byokByProvider[group].push(voice);
+      }
+
+      voiceSelect.innerHTML = '<option value="" disabled selected>Select a voice...</option>';
+
+      if (standardVoices.length > 0) {
+        const standardGroup = document.createElement('optgroup');
+        standardGroup.label = 'Responsive Voices';
+        for (const voice of standardVoices) {
+          const option = document.createElement('option');
+          option.value = voice.name;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          standardGroup.appendChild(option);
+        }
+        voiceSelect.appendChild(standardGroup);
+      }
+
+      for (const [providerName, providerVoices] of Object.entries(byokByProvider)) {
+        const group = document.createElement('optgroup');
+        group.label = providerName;
+        for (const voice of providerVoices) {
+          const option = document.createElement('option');
+          option.value = voice.name;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          group.appendChild(option);
+        }
+        voiceSelect.appendChild(group);
+      }
+
+      voiceSelect.disabled = false;
+      speakBtn.disabled = false;
+    }
+
+    // ========================================================================
+    // Button State Updates
+    // ========================================================================
+
+    function updateButtonStates(isSpeaking) {
+      speakBtn.disabled = isSpeaking;
+      pauseBtn.disabled = !isSpeaking;
+      resumeBtn.disabled = !isSpeaking;
+      cancelBtn.disabled = !isSpeaking;
+    }
+
+    // ========================================================================
+    // Event Listener Attachment (reusable across re-init)
+    // ========================================================================
+
+    function attachRVEventListeners() {
+      rv.addEventListener('OnReady', () => {
+        log('OnReady');
+        updateVoiceSelect();
+        updateBrowserVoices();
+        populateLanguageFilter();
+        renderVoiceExplorer();
+        updateDurationEstimate();
+        // Re-evaluate speak buttons now that rv is ready
+        if (lastChunks.length > 0) speakChunksBtn.disabled = false;
+        runTestReplacement();
+      });
+
+      rv.addEventListener('OnStart', () => {
+        log('OnStart');
+        speechState.playing = true;
+        speechState.paused = false;
+        updateButtonStates(true);
+        updateStateDisplay();
+      });
+
+      rv.addEventListener('OnEnd', () => {
+        log('OnEnd');
+        speechState.playing = false;
+        speechState.paused = false;
+        speechState.currentPart = 0;
+        speechState.totalParts = 0;
+        updateButtonStates(false);
+        updateStateDisplay();
+      });
+
+      rv.addEventListener('OnPause', () => {
+        log('OnPause');
+        speechState.paused = true;
+        updateStateDisplay();
+      });
+
+      rv.addEventListener('OnResume', () => {
+        log('OnResume');
+        speechState.paused = false;
+        updateStateDisplay();
+      });
+
+      rv.addEventListener('OnError', (e) => {
+        log('OnError', { message: e.error?.message });
+        resetSpeechState();
+        updateButtonStates(false);
+      });
+
+      rv.addEventListener('OnPartStart', (e) => {
+        speechState.currentPart = e.partIndex + 1;
+        speechState.totalParts = e.totalParts;
+        updateStateDisplay();
+        const truncatedText = e.text.length > 40 ? `${e.text.substring(0, 40)}...` : e.text;
+        log('OnPartStart', { part: `${e.partIndex + 1}/${e.totalParts}`, truncatedText });
+      });
+
+      rv.addEventListener('OnPartEnd', (e) => {
+        log('OnPartEnd', { part: `${e.partIndex + 1}/${e.totalParts}` });
+      });
+
+      rv.addEventListener('OnVoiceResolved', (e) => {
+        log('OnVoiceResolved', e);
+      });
+    }
+
+    // ========================================================================
+    // Initialize ResponsiveVoice
+    // ========================================================================
+
+    async function initResponsiveVoice() {
+      statusBadge.textContent = 'Initializing...';
+      statusBadge.className = 'status-badge pending';
+
+      // Clean up previous instance
+      if (rv) {
+        rv.dispose();
+        rv = null;
+      }
+      resetSpeechState();
+
+      try {
+        rv = rv_instance;
+
+        rv.debug = debugCheckbox.checked;
+
+        // Attach event listeners before init so we capture OnReady
+        attachRVEventListeners();
+
+        log('Initializing ResponsiveVoice...', {
+          forceFallback: forceFallbackCheckbox.checked,
+          transport: transportSelect.value,
+          autoConnect: autoConnectCheckbox.checked,
+        });
+
+        await rv.init({
+          forceFallback: forceFallbackCheckbox.checked,
+          transport: transportSelect.value,
+          autoConnect: autoConnectCheckbox.checked,
+          enableAnalytics: false,
+        });
+
+        statusBadge.textContent = 'Ready';
+        statusBadge.className = 'status-badge ready';
+
+        // Surface demo mode when no API key is in play; hide the pill when live.
+        document.getElementById('demoBadge').hidden = !rv.isDemoMode();
+
+        // Apply any pre-existing replacement rules to the newly initialized instance
+        updateLocalReplacements();
+
+        // If devices were already loaded (permission previously granted), refresh them
+        if (deviceControls.style.display !== 'none') {
+          loadOutputDevices();
+        }
+
+      } catch (error) {
+        statusBadge.textContent = 'Error';
+        statusBadge.className = 'status-badge error';
+        log('Initialization failed', { error: error.message });
+        console.error('Init error:', error);
+      }
+    }
+
+    // ========================================================================
+    // Utility Functions
+    // ========================================================================
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function escapeAttr(str) {
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    function debounce(fn, delay) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    // ========================================================================
+    // Event Listeners (UI)
+    // ========================================================================
+
+    // TTS Controls
+    rateInput.addEventListener('input', () => {
+      rateValue.textContent = rateInput.value;
+      updateDurationEstimate();
+    });
+
+    pitchInput.addEventListener('input', () => {
+      pitchValue.textContent = pitchInput.value;
+    });
+
+    volumeInput.addEventListener('input', () => {
+      volumeValue.textContent = volumeInput.value;
+    });
+
+    voiceSelect.addEventListener('change', () => {
+      updateStateDisplay();
+      updateDurationEstimate();
+    });
+
+    speakBtn.addEventListener('click', () => {
+      if (!rv?.isReady()) return;
+      const text = textInput.value.trim();
+      if (!text) return;
+      const voice = voiceSelect.value;
+      const params = {
+        rate: parseFloat(rateInput.value),
+        pitch: parseFloat(pitchInput.value),
+        volume: parseFloat(volumeInput.value),
+      };
+      log('speak()', { voice, params });
+      rv.speak(text, voice, params);
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      if (rv) { rv.pause(); log('pause()'); }
+    });
+
+    resumeBtn.addEventListener('click', () => {
+      if (rv) { rv.resume(); log('resume()'); }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      if (rv) { rv.cancel(); log('cancel()'); updateButtonStates(false); resetSpeechState(); }
+    });
+
+    textInput.addEventListener('input', debounce(updateDurationEstimate, 300));
+
+    // Configuration
+    reinitBtn.addEventListener('click', () => {
+      log('Re-initializing...');
+      initResponsiveVoice();
+    });
+
+    debugCheckbox.addEventListener('change', () => {
+      rv_instance.debug = debugCheckbox.checked;
+      log('Debug mode', { enabled: debugCheckbox.checked });
+    });
+
+    // Voice Explorer
+    browserVoicesToggle.addEventListener('click', () => {
+      const isHidden = browserVoiceList.style.display === 'none';
+      browserVoiceList.style.display = isHidden ? '' : 'none';
+      browserVoicesChevron.textContent = isHidden ? '\u25BC' : '\u25B6';
+    });
+    voiceSearch.addEventListener('input', debounce(renderVoiceExplorer, 200));
+    langFilter.addEventListener('change', renderVoiceExplorer);
+
+    filterPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach(p => { p.classList.remove('active'); });
+        pill.classList.add('active');
+        currentTypeFilter = pill.dataset.filter;
+        renderVoiceExplorer();
+      });
+    });
+
+    // Text Processing
+    chunkBtn.addEventListener('click', runChunking);
+    speakChunksBtn.addEventListener('click', speakChunks);
+    chunkLimitSlider.addEventListener('input', () => {
+      chunkLimitValue.textContent = chunkLimitSlider.value;
+    });
+
+    // Text Replacements
+    addRuleBtn.addEventListener('click', addRule);
+    newRuleSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') addRule(); });
+    newRuleReplace.addEventListener('keydown', (e) => { if (e.key === 'Enter') addRule(); });
+    applyRulesBtn.addEventListener('click', applyRulesToRV);
+    clearRulesBtn.addEventListener('click', clearAllRules);
+    testReplacementInput.addEventListener('input', debounce(runTestReplacement, 200));
+    speakReplacementBtn.addEventListener('click', speakReplacementResult);
+
+    // Audio Output Device
+    outputDeviceSelect.addEventListener('change', async () => {
+      if (!rv) return;
+      try {
+        await rv.setOutputDevice(outputDeviceSelect.value);
+        log('Output device changed', { deviceId: outputDeviceSelect.value || 'default' });
+        if (outputDeviceSelect.value && !rv.isForceFallback()) {
+          log('Note: Most voices use native TTS which ignores output device. Enable "Force Fallback Mode" in Configuration to guarantee this takes effect.');
+        }
+      } catch (err) {
+        log('Output device error', { message: err.message });
+      }
+    });
+    requestDevicePermissionBtn.addEventListener('click', requestDevicePermission);
+    refreshDevicesBtn.addEventListener('click', loadOutputDevices);
+
+    // Event Log
+    clearLogBtn.addEventListener('click', () => {
+      eventLog.innerHTML = '';
+      log('Log cleared');
+    });
+
+    // ========================================================================
+    // Expose functions used by inline onclick attributes
+    // ========================================================================
+
+    window.previewVoice = previewVoice;
+    window.deleteRule = deleteRule;
+
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
+    // Render initial UI
+    renderRulesTable();
+    updateLocalReplacements();
+    updatePlatformInfo();
+    resetSpeechState();
+
+    // Initialize ResponsiveVoice
+    initResponsiveVoice();
+  </script>
+</body>
+</html>

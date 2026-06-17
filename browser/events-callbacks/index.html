@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <title>ResponsiveVoice - Events &amp; Callbacks Example</title>
+  <link rel="stylesheet" href="../shared/demo-base.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../shared/api-key-scaffold.css">
+  <script src="../shared/api-key-scaffold.js"></script>
+</head>
+<body>
+  <a href="../../" class="back-link">&larr; Back to Examples</a>
+  <div class="header">
+    <img src="../../favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+    <h1>Events &amp; Callbacks</h1>
+    <span id="demoBadge" class="demo-badge" hidden>Demo Mode</span>
+  </div>
+  <p class="subtitle">Speak one utterance and watch every public event and per-call callback fire.</p>
+
+  <div class="card">
+    <h2>Input</h2>
+    <textarea id="textInput" rows="4">ResponsiveVoice fires lifecycle events as it speaks. When the input is long enough, the engine splits it into multiple parts and OnPartStart and OnPartEnd fire per chunk. Watch the indicators below light up as each event arrives across the call's lifecycle.</textarea>
+    <div class="button-row">
+      <button type="button" id="speakBtn" disabled>Speak</button>
+      <button type="button" id="pauseBtn" class="button-secondary" disabled>Pause</button>
+      <button type="button" id="resumeBtn" class="button-secondary" disabled>Resume</button>
+      <button type="button" id="cancelBtn" class="button-secondary" disabled>Cancel</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Per-call callbacks (passed to <code>speak()</code>)</h2>
+    <div class="pills">
+      <div id="pill-onstart" class="pill"><span class="pill-name">onstart</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-onboundary" class="pill"><span class="pill-name">onboundary</span><span class="pill-detail">0 fires</span></div>
+      <div id="pill-onend" class="pill"><span class="pill-name">onend</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-onerror" class="pill"><span class="pill-name">onerror</span><span class="pill-detail">waiting…</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Global events (<code>responsiveVoice.addEventListener</code>)</h2>
+    <div class="pills">
+      <div id="pill-OnReady" class="pill"><span class="pill-name">OnReady</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-OnVoiceResolved" class="pill"><span class="pill-name">OnVoiceResolved</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-OnStart" class="pill"><span class="pill-name">OnStart</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-OnPartStart" class="pill"><span class="pill-name">OnPartStart</span><span class="pill-detail">0 fires</span></div>
+      <div id="pill-OnPartEnd" class="pill"><span class="pill-name">OnPartEnd</span><span class="pill-detail">0 fires</span></div>
+      <div id="pill-OnPause" class="pill"><span class="pill-name">OnPause</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-OnResume" class="pill"><span class="pill-name">OnResume</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-OnEnd" class="pill"><span class="pill-name">OnEnd</span><span class="pill-detail">waiting…</span></div>
+      <div id="pill-OnError" class="pill"><span class="pill-name">OnError</span><span class="pill-detail">waiting…</span></div>
+    </div>
+    <pre class="log" id="eventLog" style="margin-top:1rem">Initializing…</pre>
+    <div class="button-row">
+      <button type="button" id="clearLogBtn" class="button-secondary">Clear log</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Event reference</h2>
+    <dl class="reference">
+      <dt>OnReady</dt>
+      <dd>Fires once when the engine has loaded voices and is ready to speak.</dd>
+      <dt>OnVoiceResolved</dt>
+      <dd>The requested voice has been resolved to a concrete native or fallback voice.</dd>
+      <dt>OnStart</dt>
+      <dd>Speech has started for the current utterance.</dd>
+      <dt>OnEnd</dt>
+      <dd>Speech finished naturally (not cancelled).</dd>
+      <dt>OnPause</dt>
+      <dd>Playback paused via <code>responsiveVoice.pause()</code>. Browsers auto-cancel after ~60s.</dd>
+      <dt>OnResume</dt>
+      <dd>Playback resumed via <code>responsiveVoice.resume()</code>.</dd>
+      <dt>OnError</dt>
+      <dd>Synthesis failed; payload is <code>{ error: { message } }</code>.</dd>
+      <dt>OnPartStart / OnPartEnd</dt>
+      <dd>Long text is split into parts; these fire per chunk with <code>{ partIndex, totalParts, text }</code>.</dd>
+    </dl>
+  </div>
+
+  <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
+  <script>
+    const rv = window.responsiveVoice;
+
+    const textInput = document.getElementById('textInput');
+    const speakBtn = document.getElementById('speakBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const eventLog = document.getElementById('eventLog');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+    const demoBadge = document.getElementById('demoBadge');
+
+    const pillStart = document.getElementById('pill-onstart');
+    const pillBoundary = document.getElementById('pill-onboundary');
+    const pillEnd = document.getElementById('pill-onend');
+    const pillError = document.getElementById('pill-onerror');
+
+    let boundaryFires = 0;
+
+    // ----------------------------------------------------------------------
+    // Global events — registered once at load and fire for the lifetime of
+    // the page, across every speak() call.
+    // ----------------------------------------------------------------------
+    const GLOBAL_EVENTS = [
+      'OnReady',
+      'OnVoiceResolved',
+      'OnStart',
+      'OnEnd',
+      'OnPause',
+      'OnResume',
+      'OnError',
+      'OnPartStart',
+      'OnPartEnd',
+    ];
+
+    const globalCounts = {};
+    function resetGlobalPills() {
+      // Resets every global pill except OnReady, which fires once per page load
+      // and stays green for the rest of the session.
+      for (const name of GLOBAL_EVENTS) {
+        if (name === 'OnReady') continue;
+        const pill = document.getElementById(`pill-${name}`);
+        if (!pill) continue;
+        pill.classList.remove('fired', 'errored');
+        const initial = (name === 'OnPartStart' || name === 'OnPartEnd') ? '0 fires' : 'waiting…';
+        pill.querySelector('.pill-detail').textContent = initial;
+        globalCounts[name] = 0;
+      }
+    }
+
+    function updateGlobalPill(name, payload) {
+      const pill = document.getElementById(`pill-${name}`);
+      if (!pill) return;
+      const count = (globalCounts[name] || 0) + 1;
+      globalCounts[name] = count;
+
+      let detail;
+      let cls = 'fired';
+      if (name === 'OnPartStart' && payload && typeof payload.partIndex === 'number') {
+        detail = `part ${payload.partIndex + 1} of ${payload.totalParts}`;
+      } else if (name === 'OnPartEnd') {
+        detail = `${count} fire${count === 1 ? '' : 's'}`;
+      } else if (name === 'OnError') {
+        detail = `error: ${payload?.error?.message || 'unknown'}`;
+        cls = 'errored';
+      } else if (name === 'OnVoiceResolved') {
+        const voice = payload?.voice || payload?.name || payload?.resolved?.name;
+        detail = voice ? `→ ${voice}` : 'fired';
+      } else if (name === 'OnReady') {
+        detail = 'ready';
+      } else {
+        detail = 'fired';
+      }
+
+      pill.classList.remove('fired', 'errored');
+      pill.classList.add(cls);
+      pill.querySelector('.pill-detail').textContent = detail;
+    }
+
+    GLOBAL_EVENTS.forEach(name => {
+      rv.addEventListener(name, (payload) => {
+        logGlobal(name, payload);
+        updateGlobalPill(name, payload);
+      });
+    });
+
+    rv.addEventListener('OnReady', () => {
+      speakBtn.disabled = false;
+      if (rv.isDemoMode()) demoBadge.hidden = false;
+    });
+
+    rv.addEventListener('OnStart', () => {
+      pauseBtn.disabled = false;
+      cancelBtn.disabled = false;
+      speakBtn.disabled = true;
+    });
+
+    rv.addEventListener('OnEnd', () => {
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = true;
+      cancelBtn.disabled = true;
+      speakBtn.disabled = false;
+    });
+
+    rv.addEventListener('OnPause', () => {
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = false;
+    });
+
+    rv.addEventListener('OnResume', () => {
+      pauseBtn.disabled = false;
+      resumeBtn.disabled = true;
+    });
+
+    rv.addEventListener('OnError', () => {
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = true;
+      cancelBtn.disabled = true;
+      speakBtn.disabled = false;
+    });
+
+    rv.init({
+      // apiKey: 'YOUR_RESPONSIVEVOICE_API_KEY',
+    }).catch(err => {
+      logGlobal('init() rejected', { message: err.message });
+    });
+
+    // ----------------------------------------------------------------------
+    // Per-call callbacks — passed inline to speak(), bound to the utterance
+    // they were given to. They reset on every new Speak click.
+    // ----------------------------------------------------------------------
+    speakBtn.addEventListener('click', () => {
+      const text = textInput.value.trim();
+      if (!text) return;
+
+      resetPills();
+      resetGlobalPills();
+      rv.cancel();
+
+      rv.speak(text, undefined, {
+        onstart: () => {
+          markPill(pillStart, 'fired', 'fired');
+          logCallback('onstart');
+        },
+        onend: () => {
+          markPill(pillEnd, 'fired', 'fired');
+          logCallback('onend');
+        },
+        onerror: (err) => {
+          markPill(pillError, 'errored', err?.message || 'error');
+          logCallback('onerror', { message: err?.message });
+        },
+        onboundary: (charIndex, name) => {
+          boundaryFires += 1;
+          markPill(pillBoundary, 'fired', `${boundaryFires} fires (last @ ${charIndex})`);
+          logCallback('onboundary', { charIndex, name });
+        },
+      });
+    });
+
+    pauseBtn.addEventListener('click', () => rv.pause());
+    resumeBtn.addEventListener('click', () => rv.resume());
+    cancelBtn.addEventListener('click', () => {
+      rv.cancel();
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = true;
+      cancelBtn.disabled = true;
+      speakBtn.disabled = false;
+    });
+
+    clearLogBtn.addEventListener('click', () => {
+      eventLog.textContent = '';
+    });
+
+    // ----------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------
+    function resetPills() {
+      boundaryFires = 0;
+      [pillStart, pillBoundary, pillEnd, pillError].forEach(p => {
+        p.classList.remove('fired', 'errored');
+      });
+      pillStart.querySelector('.pill-detail').textContent = 'waiting…';
+      pillBoundary.querySelector('.pill-detail').textContent = '0 fires';
+      pillEnd.querySelector('.pill-detail').textContent = 'waiting…';
+      pillError.querySelector('.pill-detail').textContent = 'waiting…';
+    }
+
+    function markPill(pill, cls, detail) {
+      pill.classList.remove('fired', 'errored');
+      pill.classList.add(cls);
+      pill.querySelector('.pill-detail').textContent = detail;
+    }
+
+    function appendLog(html) {
+      // Replace placeholder on first real entry.
+      if (eventLog.textContent === 'Initializing…') eventLog.textContent = '';
+      const line = document.createElement('div');
+      line.innerHTML = html;
+      eventLog.appendChild(line);
+      eventLog.scrollTop = eventLog.scrollHeight;
+    }
+
+    function logGlobal(name, payload) {
+      appendLog(formatEntry('global', name, payload));
+    }
+
+    function logCallback(name, payload) {
+      appendLog(formatEntry('callback', name, payload));
+    }
+
+    function formatEntry(kind, name, payload) {
+      const ts = new Date().toTimeString().split(' ')[0];
+      const cls = kind === 'global' ? 'ev-global' : 'ev-callback';
+      const data = payload != null ? ` <span class="ev-data">${escapeHtml(safeJson(payload))}</span>` : '';
+      return `<span class="ts">[${ts}]</span> <span class="${cls}">${escapeHtml(name)}</span>${data}`;
+    }
+
+    function safeJson(value) {
+      try {
+        if (value instanceof Error) return JSON.stringify({ message: value.message });
+        return JSON.stringify(value, (_k, v) => (v instanceof Error ? { message: v.message } : v));
+      } catch {
+        return String(value);
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = String(str);
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

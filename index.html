@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <title>ResponsiveVoice Examples</title>
+  <style>
+    :root {
+      --primary: #7A57EE;
+      --primary-hover: #6344d4;
+      --primary-light: #a88bf5;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-intro {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-intro code {
+      background: var(--border);
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      font-size: 0.8125rem;
+    }
+
+    .section h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 1.25rem;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .example-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s;
+    }
+
+    .example-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(122, 87, 238, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .example-card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .example-card p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 0.5rem;
+    }
+
+    .badge.browser {
+      background: #ede9fe;
+      color: #5b3cc4;
+    }
+
+    .badge.node {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .coming-soon {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .coming-soon h3::after {
+      content: 'Coming Soon';
+      font-size: 0.625rem;
+      background: var(--border);
+      color: var(--text-muted);
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      margin-left: 0.5rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+      <h1>ResponsiveVoice Examples</h1>
+    </div>
+    <p class="subtitle">Learn how to use @responsivevoice/core with these examples</p>
+
+    <div class="section">
+      <h2>CDN Examples</h2>
+      <p class="section-intro">Drop a <code>&lt;script&gt;</code> tag on any page — no build step.</p>
+      <div class="examples-grid">
+        <a href="browser/basic/" class="example-card">
+          <h3>Basic Usage <span class="badge browser">Browser</span></h3>
+          <p>Minimal text-to-speech example with speak, cancel, and event handling.</p>
+        </a>
+        <a href="browser/extended/" class="example-card">
+          <h3>Extended Usage <span class="badge browser">Browser</span></h3>
+          <p>Full-featured demo with voice selection, speech controls, and event logging.</p>
+        </a>
+        <a href="browser/web-player/" class="example-card">
+          <h3>Web Player <span class="badge browser">Browser</span></h3>
+          <p>Inline player with paragraph highlighting, click-to-jump, and sticky mini-player. Multi-mount and dynamic <code>rv.webPlayer.mount()</code> shown side-by-side.</p>
+        </a>
+        <a href="browser/web-player-customization/" class="example-card">
+          <h3>Web Player Customization <span class="badge browser">Browser</span></h3>
+          <p>Live control panel for every <code>webPlayer</code> option — theme, controls, navigation, layout, and the <code>--rv-player-margin</code> CSS variable. Shows the matching JSON config snippet as you tweak.</p>
+        </a>
+        <a href="browser/voice-selector/" class="example-card">
+          <h3>Voice Selector <span class="badge browser">Browser</span></h3>
+          <p>Interactive voice browser with language filtering and preview.</p>
+        </a>
+        <a href="browser/events-callbacks/" class="example-card">
+          <h3>Events & Callbacks <span class="badge browser">Browser</span></h3>
+          <p>Deep dive into event handling and speech progress tracking.</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>npm Examples</h2>
+      <p class="section-intro">
+        Install <code>@responsivevoice/core</code> from npm and bundle with your tool of choice.
+      </p>
+      <div class="examples-grid">
+        <a href="browser/vite/about.html" class="example-card">
+          <h3>Vite <span class="badge browser">Browser</span></h3>
+          <p>ESM <code>import</code> bundled by Vite. Requires <code>npm run vite:dev</code>; see the recipe page for instructions.</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Node.js Examples</h2>
+      <p class="section-intro">
+        Server-side usage — runs in Node.js, not the browser. Uses
+        <code>@responsivevoice/api-client</code>.
+      </p>
+      <div class="examples-grid">
+        <div class="example-card">
+          <h3>CLI Tool <span class="badge node">Node.js</span></h3>
+          <p>Command-line TTS tool. Run with: <code>npm run cli -- "Hello"</code></p>
+        </div>
+        <div class="example-card">
+          <h3>HTTP Server <span class="badge node">Node.js</span></h3>
+          <p>REST API server for TTS. Run with: <code>npm run server</code></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>
+        <a href="https://github.com/responsivevoice/examples">View on GitHub</a> |
+        <a href="https://docs.responsivevoice.org">Documentation</a> |
+        <a href="https://www.npmjs.com/package/@responsivevoice/core">npm</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

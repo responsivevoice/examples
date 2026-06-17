@@ -1,0 +1,32 @@
+{
+  "name": "@responsivevoice/examples",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example applications demonstrating ResponsiveVoice usage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/responsivevoice/examples.git"
+  },
+  "scripts": {
+    "serve": "npx serve .",
+    "typecheck": "tsc -p node/tsconfig.json && tsc -p browser/vite/tsconfig.json",
+    "cli": "tsx node/cli/index.ts",
+    "server": "tsx node/server/index.ts",
+    "vite:dev": "vite browser/vite",
+    "vite:build": "vite build browser/vite",
+    "vite:preview": "vite preview browser/vite"
+  },
+  "dependencies": {
+    "@responsivevoice/api-client": "^2.0.0",
+    "@responsivevoice/core": "^2.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "serve": "^14.2.6",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  },
+  "author": "ResponsiveVoice, Inc. <support@responsivevoice.org>",
+  "license": "MIT"
+}

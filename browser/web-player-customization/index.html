@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <title>ResponsiveVoice - Web Player Customization</title>
+  <link rel="stylesheet" href="../shared/demo-base.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../shared/api-key-scaffold.css">
+  <script src="../shared/api-key-scaffold.js"></script>
+</head>
+<body>
+  <a href="../../" class="back-link">&larr; Back to Examples</a>
+  <div class="header">
+    <img src="../../favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+    <h1>Web Player Customization</h1>
+  </div>
+  <p class="subtitle">
+    Tune every option in <code>webPlayer</code> live. Each change re-mounts the
+    player via <code>rv.webPlayer.mount()</code> with leaf-merged overrides.
+    The matching config snippet updates on the right.
+  </p>
+
+  <p id="status">Initializing…</p>
+
+  <div class="layout">
+    <!-- Control panel -->
+    <aside class="panel">
+      <h2>Theme</h2>
+      <div class="field">
+        <input type="radio" id="theme-neutral" name="theme" value="neutral" checked>
+        <label for="theme-neutral">Neutral</label>
+      </div>
+      <div class="field">
+        <input type="radio" id="theme-rv" name="theme" value="responsivevoice">
+        <label for="theme-rv">ResponsiveVoice</label>
+      </div>
+      <div class="field">
+        <input type="radio" id="theme-custom" name="theme" value="custom">
+        <label for="theme-custom">Custom tokens</label>
+      </div>
+      <div id="custom-tokens" hidden>
+        <!-- 9 color picker fields injected on first toggle -->
+      </div>
+
+      <h2>Controls</h2>
+      <div class="field"><input type="checkbox" id="ctrl-progress" checked><label for="ctrl-progress">Progress</label></div>
+      <div class="field"><input type="checkbox" id="ctrl-time" checked><label for="ctrl-time">Time</label></div>
+      <div class="field"><input type="checkbox" id="ctrl-skip" checked><label for="ctrl-skip">Skip</label></div>
+      <div class="field"><input type="checkbox" id="ctrl-speed" checked><label for="ctrl-speed">Speed</label></div>
+      <div class="field"><input type="checkbox" id="ctrl-brand" checked><label for="ctrl-brand">Brand</label></div>
+
+      <h2>Navigation</h2>
+      <div class="field"><input type="checkbox" id="nav-highlight" checked><label for="nav-highlight">Paragraph highlight</label></div>
+      <div class="field"><input type="checkbox" id="nav-click" checked><label for="nav-click">Paragraph click</label></div>
+
+      <h2>Position</h2>
+      <div class="field field--token">
+        <span class="token-name">position</span>
+        <select id="main-position">
+          <option value="before" selected>before</option>
+          <option value="after">after</option>
+          <option value="inline">inline</option>
+          <option value="custom">custom (target)</option>
+        </select>
+      </div>
+      <div id="main-position-target" hidden>
+        <div class="field field--token">
+          <span class="token-name">selector</span>
+          <input type="text" id="mount-target" placeholder="e.g. #my-slot" value="">
+        </div>
+        <div class="field field--token">
+          <span class="token-name">at</span>
+          <select id="mount-at">
+            <option value="inside" selected>inside</option>
+            <option value="before">before</option>
+            <option value="after">after</option>
+          </select>
+        </div>
+      </div>
+
+      <h2>Layout</h2>
+      <div class="row">
+        <div class="field"><input type="radio" name="mode" id="mode-shrink" value="shrink" checked><label for="mode-shrink">Shrink</label></div>
+        <div class="field"><input type="radio" name="mode" id="mode-fill" value="fill"><label for="mode-fill">Fill</label></div>
+      </div>
+      <div class="row">
+        <div class="field"><input type="radio" name="display" id="disp-block" value="block" checked><label for="disp-block">Block</label></div>
+        <div class="field"><input type="radio" name="display" id="disp-inline" value="inline"><label for="disp-inline">Inline</label></div>
+      </div>
+
+      <h2>Mini-Player</h2>
+      <div class="field"><input type="checkbox" id="layout-mini" checked><label for="layout-mini">Enabled</label></div>
+      <div id="mini-config">
+        <div class="field field--token">
+          <span class="token-name">position</span>
+          <select id="mini-position">
+            <option value="bottom-left" selected>bottom-left</option>
+            <option value="bottom-right">bottom-right</option>
+            <option value="top-left">top-left</option>
+            <option value="top-right">top-right</option>
+            <option value="custom">custom (offsets)</option>
+          </select>
+        </div>
+        <div id="mini-offsets" hidden>
+          <div class="field field--token">
+            <span class="token-name">top</span>
+            <input type="text" id="mini-offset-top" placeholder="e.g. 80px" value="">
+          </div>
+          <div class="field field--token">
+            <span class="token-name">right</span>
+            <input type="text" id="mini-offset-right" placeholder="e.g. 20px" value="">
+          </div>
+          <div class="field field--token">
+            <span class="token-name">bottom</span>
+            <input type="text" id="mini-offset-bottom" placeholder="e.g. 1rem" value="">
+          </div>
+          <div class="field field--token">
+            <span class="token-name">left</span>
+            <input type="text" id="mini-offset-left" placeholder="e.g. 1rem" value="">
+          </div>
+        </div>
+        <div class="field field--token">
+          <span class="token-name">animation</span>
+          <select id="mini-animation">
+            <option value="slide" selected>slide</option>
+            <option value="fade">fade</option>
+            <option value="pop">pop</option>
+            <option value="none">none</option>
+          </select>
+        </div>
+      </div>
+
+      <h2>Sanitize</h2>
+      <div class="field"><input type="checkbox" id="sanitize-enabled" checked><label for="sanitize-enabled">Enabled (skip scripts, styles, controls, media)</label></div>
+      <div class="field field--token">
+        <span class="token-name">exclude</span>
+        <input type="text" id="sanitize-exclude" placeholder=".ad, nav" value="">
+      </div>
+
+      <hr class="panel-divider">
+      <h2>Spacing</h2>
+      <p class="panel-note">CSS custom property — not part of the <code>webPlayer</code> config.</p>
+      <div class="field">
+        <span class="token-name">--rv-player-margin</span>
+        <input type="text" id="player-margin" value="1rem 0">
+      </div>
+
+      <button type="button" class="reset-btn" id="reset">Reset to defaults</button>
+    </aside>
+
+    <!-- Preview area -->
+    <main class="preview">
+      <pre class="code-preview" id="code-preview"></pre>
+
+      <div id="sample-container" class="sample-container" role="button" tabindex="0">
+        <h3>Sample Container — click to mount the player here</h3>
+        <p><em>An empty container you can target with the <code>custom</code> position. Clicking sets <code>position</code> to <code>{ target: '#sample-container', at: 'inside' }</code> and re-mounts the player into this box.</em></p>
+      </div>
+
+      <article id="sample">
+        <h2>Sample article</h2>
+        <p>
+          This article is wrapped by the player. Tweak any option in the panel
+          and the player re-mounts with the new config on the fly.
+        </p>
+        <p><style>.demo-noise{display:none}</style></p>
+        <p><button type="button">Demo button — a control, not prose</button></p>
+        <p>
+          With <code>Sanitize</code> on, the two blocks above are skipped — the
+          player neither narrates nor highlights the inline CSS or the button
+          label. Turn it off to hear them read as paragraphs.
+        </p>
+        <p>
+          Try toggling controls off one at a time, switch the layout mode
+          between shrink and fill, or pick a custom theme to see the tokens
+          flow through the pill, progress bar, and paragraph highlight.
+        </p>
+        <p>
+          Click any paragraph to jump narration here — assuming
+          <code>paragraphClick</code> is on.
+        </p>
+        <h2>Why this demo exists</h2>
+        <p>
+          The web player ships with three layered config groups and a 9-token
+          theme system. Reading the schema gives you the surface area, but
+          seeing each option flip in real time is faster — that's the job of
+          this page.
+        </p>
+        <p>
+          The right column shows the exact JSON you'd paste into
+          <code>rv.init()</code> or <code>rv.webPlayer.mount()</code> to get
+          the same result. Copy it whenever you've tuned something you like.
+        </p>
+        <h2>Scroll past me to test the mini-player</h2>
+        <p>
+          The mini-player only surfaces when the main player has scrolled out
+          of view <em>and</em> something is actively playing or paused. Click
+          play, scroll down, and you should see a circular control appear in
+          the configured corner of the viewport — defaults to bottom-left,
+          and the panel exposes the other three corners too. The
+          <code>animation</code> dropdown changes how it appears and
+          disappears: <code>slide</code> (default), <code>fade</code>,
+          <code>pop</code>, or <code>none</code>. Motion is skipped
+          automatically when the browser requests reduced motion.
+        </p>
+        <p>
+          Disabling <code>miniPlayer</code> in the panel removes that
+          floating control entirely — useful for short articles or pages
+          where a sticky control would feel intrusive.
+        </p>
+        <p>
+          Disabling individual chrome elements via the
+          <code>controls</code> group lets you build a stripped-down player
+          with only the bits you want. The pill resizes and the right-side
+          padding self-balances when progress is the rightmost element.
+        </p>
+        <h2>Theming notes</h2>
+        <p>
+          The neutral preset is intentionally subdued — slate text on white,
+          pink accent for active paragraph highlight. The responsivevoice
+          preset uses brand purple. Custom tokens let you override any of
+          the nine theme keys directly; missing keys fall through to the
+          neutral baseline.
+        </p>
+        <p>
+          The brand glyph and play button face are tied to the
+          <code>fill</code> token, so a custom <code>fill: '#ff6b35'</code>
+          gives you an orange play button without touching anything else.
+        </p>
+        <p>
+          Spacing is controlled outside the schema via the
+          <code>--rv-player-margin</code> CSS custom property. Set it to
+          <code>0</code> to glue the player to surrounding content, or pick
+          a larger value for more breathing room.
+        </p>
+      </article>
+    </main>
+  </div>
+
+  <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
+  <script>
+    const rv = window.responsiveVoice;
+    const status = document.getElementById('status');
+    function setStatus(msg) { status.textContent = msg; }
+
+    // --- Theme tokens (9-token grid) ---
+    const TOKEN_DEFAULTS = {
+      bg: '#ffffff', fg: '#0f172a', muted: '#64748b',
+      accent: '#ec4899', accentSoft: '#fce7f3', hover: '#f3e8ff',
+      border: '#e2e8f0', track: '#e5e7eb', fill: '#0f172a',
+    };
+    const customTokensEl = document.getElementById('custom-tokens');
+    for (const [name, value] of Object.entries(TOKEN_DEFAULTS)) {
+      const wrap = document.createElement('div');
+      wrap.className = 'field field--token';
+      wrap.innerHTML = `
+        <span class="token-name">${name}</span>
+        <input type="color" data-token="${name}" value="${value}">
+        <input type="text" data-token-text="${name}" value="${value}">
+      `;
+      customTokensEl.appendChild(wrap);
+      const picker = wrap.querySelector('input[type="color"]');
+      const text = wrap.querySelector('input[type="text"]');
+      picker.addEventListener('input', () => { text.value = picker.value; remount(); });
+      text.addEventListener('input', () => {
+        if (/^#[0-9a-fA-F]{6}$/.test(text.value)) picker.value = text.value;
+        remount();
+      });
+    }
+
+    document.querySelectorAll('input[name="theme"]').forEach((r) => {
+      r.addEventListener('change', () => {
+        customTokensEl.hidden = r.value !== 'custom' || !r.checked;
+        remount();
+      });
+    });
+    customTokensEl.hidden = true;
+
+    // --- Wire all other controls to remount() ---
+    document
+      .querySelectorAll('.panel input[type="checkbox"], .panel input[type="radio"]:not([name="theme"])')
+      .forEach((el) => { el.addEventListener('change', remount); });
+    document.getElementById('layout-mini').addEventListener('change', () => {
+      toggleMiniConfig();
+      remount();
+    });
+    document.getElementById('mini-position').addEventListener('change', () => {
+      toggleMiniOffsets();
+      remount();
+    });
+    for (const id of ['mini-offset-top', 'mini-offset-right', 'mini-offset-bottom', 'mini-offset-left']) {
+      document.getElementById(id).addEventListener('input', remount);
+    }
+    document.getElementById('mini-animation').addEventListener('change', remount);
+    document.getElementById('sanitize-exclude').addEventListener('input', remount);
+    document.getElementById('main-position').addEventListener('change', () => {
+      toggleMainPositionTarget();
+      toggleMountAt();
+      remount();
+    });
+    document.getElementById('mount-target').addEventListener('input', () => {
+      toggleMountAt();
+      remount();
+    });
+    document.getElementById('mount-at').addEventListener('change', remount);
+    document.getElementById('player-margin').addEventListener('input', applyMargin);
+    document.getElementById('reset').addEventListener('click', resetDefaults);
+
+    function toggleMiniConfig() {
+      const enabled = document.getElementById('layout-mini').checked;
+      document.getElementById('mini-config').hidden = !enabled;
+    }
+    function toggleMiniOffsets() {
+      const isCustom = document.getElementById('mini-position').value === 'custom';
+      document.getElementById('mini-offsets').hidden = !isCustom;
+    }
+    function toggleMainPositionTarget() {
+      const isCustom = document.getElementById('main-position').value === 'custom';
+      document.getElementById('main-position-target').hidden = !isCustom;
+    }
+
+    function mountInSampleContainer() {
+      document.getElementById('main-position').value = 'custom';
+      document.getElementById('mount-target').value = '#sample-container';
+      document.getElementById('mount-at').value = 'inside';
+      toggleMainPositionTarget();
+      toggleMountAt();
+      remount();
+    }
+
+    const sampleContainer = document.getElementById('sample-container');
+    sampleContainer.addEventListener('click', (event) => {
+      // Skip clicks that land inside the player itself once mounted, so its controls keep working.
+      if (event.target.closest('[data-rv-web-player]')) return;
+      mountInSampleContainer();
+    });
+    sampleContainer.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      mountInSampleContainer();
+    });
+    function toggleMountAt() {
+      const isCustom = document.getElementById('main-position').value === 'custom';
+      const hasTarget = document.getElementById('mount-target').value.trim() !== '';
+      document.getElementById('mount-at').disabled = !(isCustom && hasTarget);
+    }
+    toggleMiniConfig();
+    toggleMiniOffsets();
+    toggleMainPositionTarget();
+    toggleMountAt();
+
+    // --- Mount handle + config builder ---
+    let handle = null;
+
+    function buildTheme() {
+      const themeChoice = document.querySelector('input[name="theme"]:checked').value;
+      if (themeChoice !== 'custom') return themeChoice;
+      const theme = {};
+      document.querySelectorAll('input[data-token]').forEach((el) => {
+        theme[el.dataset.token] = el.value;
+      });
+      return theme;
+    }
+
+    function buildMiniPosition() {
+      const positionChoice = document.getElementById('mini-position').value;
+      if (positionChoice !== 'custom') return positionChoice;
+      const offsets = {};
+      for (const side of ['top', 'right', 'bottom', 'left']) {
+        const value = document.getElementById(`mini-offset-${side}`).value.trim();
+        if (value) offsets[side] = value;
+      }
+      // Schema rejects an empty offset object — fall back to the default corner if the user hasn't typed anything.
+      return Object.keys(offsets).length === 0 ? 'bottom-left' : offsets;
+    }
+
+    function buildMainPosition() {
+      const mainChoice = document.getElementById('main-position').value;
+      if (mainChoice !== 'custom') return mainChoice;
+      const target = document.getElementById('mount-target').value.trim();
+      const at = document.getElementById('mount-at').value;
+      // Schema requires `target` when using the object form. If the user hasn't typed one yet, fall back to the default keyword so the config stays parseable.
+      return target ? { target, at } : 'before';
+    }
+
+    function buildConfig() {
+      // When the mini-player is disabled, emit the boolean shorthand so the
+      // copy-paste config stays compact. Position is irrelevant when disabled.
+      const miniEnabled = document.getElementById('layout-mini').checked;
+      const miniPlayer = miniEnabled
+        ? {
+            enabled: true,
+            position: buildMiniPosition(),
+            animation: document.getElementById('mini-animation').value,
+          }
+        : false;
+
+      return {
+        position: buildMainPosition(),
+        theme: buildTheme(),
+        controls: {
+          progress: document.getElementById('ctrl-progress').checked,
+          time: document.getElementById('ctrl-time').checked,
+          skip: document.getElementById('ctrl-skip').checked,
+          speed: document.getElementById('ctrl-speed').checked,
+          brand: document.getElementById('ctrl-brand').checked,
+        },
+        navigation: {
+          paragraphHighlight: document.getElementById('nav-highlight').checked,
+          paragraphClick: document.getElementById('nav-click').checked,
+        },
+        layout: {
+          mode: document.querySelector('input[name="mode"]:checked').value,
+          display: document.querySelector('input[name="display"]:checked').value,
+        },
+        miniPlayer,
+        sanitize: {
+          enabled: document.getElementById('sanitize-enabled').checked,
+          exclude: document.getElementById('sanitize-exclude').value
+            .split(',').map((s) => s.trim()).filter(Boolean),
+        },
+      };
+    }
+
+    function applyMargin() {
+      const value = document.getElementById('player-margin').value || '0';
+      document.documentElement.style.setProperty('--rv-player-margin', value);
+      renderCodePreview();
+    }
+
+    function remount() {
+      if (handle) { handle.unmount(); handle = null; }
+      const config = buildConfig();
+      handle = rv.webPlayer?.mount('#sample', config);
+      renderCodePreview();
+    }
+
+    function renderCodePreview() {
+      const config = buildConfig();
+      const json = JSON.stringify(config, null, 2);
+      const margin = document.getElementById('player-margin').value;
+      const colored = syntaxColor(json);
+      document.getElementById('code-preview').innerHTML =
+        `<span class="key">// In your CSS:</span>\n` +
+        `<span class="key">[data-rv-web-player]</span> { <span class="key">--rv-player-margin</span>: <span class="string">${margin}</span>; }\n\n` +
+        `<span class="key">// In rv.init() or rv.webPlayer.mount():</span>\n` +
+        `webPlayer: ` + colored;
+    }
+
+    function syntaxColor(json) {
+      return json
+        .replace(/("[\w-]+")(\s*:)/g, '<span class="key">$1</span>$2')
+        .replace(/:\s*("[^"]*")/g, ': <span class="string">$1</span>')
+        .replace(/:\s*(true|false)/g, ': <span class="bool">$1</span>');
+    }
+
+    function resetDefaults() {
+      document.getElementById('theme-neutral').checked = true;
+      customTokensEl.hidden = true;
+      ['ctrl-progress','ctrl-time','ctrl-skip','ctrl-speed','ctrl-brand',
+       'nav-highlight','nav-click','layout-mini','sanitize-enabled'].forEach((id) => {
+        document.getElementById(id).checked = true;
+      });
+      document.getElementById('sanitize-exclude').value = '';
+      document.getElementById('mode-shrink').checked = true;
+      document.getElementById('disp-block').checked = true;
+      document.getElementById('mini-position').value = 'bottom-left';
+      ['mini-offset-top', 'mini-offset-right', 'mini-offset-bottom', 'mini-offset-left']
+        .forEach((id) => { document.getElementById(id).value = ''; });
+      document.getElementById('mini-animation').value = 'slide';
+      toggleMiniConfig();
+      toggleMiniOffsets();
+      document.getElementById('main-position').value = 'before';
+      document.getElementById('mount-target').value = '';
+      document.getElementById('mount-at').value = 'inside';
+      toggleMainPositionTarget();
+      toggleMountAt();
+      document.getElementById('player-margin').value = '1rem 0';
+      applyMargin();
+      remount();
+    }
+
+    rv.addEventListener('OnReady', () => {
+      setStatus('Ready — tweak any option to re-mount the player.');
+      applyMargin();
+      remount();
+    });
+    rv.addEventListener('OnError', (payload) => {
+      setStatus(`Error: ${payload?.error?.message ?? 'unknown'}`);
+    });
+
+    rv.init({
+      // apiKey: 'YOUR_RESPONSIVEVOICE_API_KEY',
+      features: {
+        // Disabled at init: nothing auto-mounts. The panel calls
+        // rv.webPlayer.mount('#sample', overrides) on every change.
+        webPlayer: { enabled: true, selector: '__never_match__' },
+      },
+    }).catch((err) => setStatus(`Failed to initialise: ${err.message}`));
+  </script>
+</body>
+</html>

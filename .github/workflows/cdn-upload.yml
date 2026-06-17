@@ -1,0 +1,41 @@
+name: Upload Examples to CDN
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Install wrangler
+        run: npm install -g wrangler
+
+      - name: Upload static examples to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          for file in index.html favicon.svg $(find browser -type f); do
+            case "$file" in
+              *.html) CT="text/html" ;;
+              *.css)  CT="text/css" ;;
+              *.js)   CT="application/javascript" ;;
+              *.svg)  CT="image/svg+xml" ;;
+              *.png)  CT="image/png" ;;
+              *)      CT="application/octet-stream" ;;
+            esac
+            echo "Uploading $file ($CT)"
+            wrangler r2 object put "responsivevoice-examples/$file" \
+              --file="$file" --ct "$CT" --remote
+          done

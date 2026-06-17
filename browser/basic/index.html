@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <title>ResponsiveVoice - Basic Example</title>
+  <link rel="stylesheet" href="../shared/demo-base.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../shared/api-key-scaffold.css">
+  <script src="../shared/api-key-scaffold.js"></script>
+</head>
+<body>
+  <a href="../../" class="back-link">&larr; Back to Examples</a>
+  <div class="header">
+    <img src="../../favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+    <h1>Basic Example</h1>
+    <span id="demoBadge" class="demo-badge" hidden>Demo Mode</span>
+  </div>
+  <p class="subtitle">The simplest way to add text-to-speech to your web page.</p>
+
+  <div class="form-group">
+    <label for="text">Text to speak:</label>
+    <textarea id="text" rows="3">Hello! This is a basic example of ResponsiveVoice text-to-speech.</textarea>
+  </div>
+
+  <button type="button" id="speakBtn" disabled>Speak</button>
+  <button type="button" id="cancelBtn" class="button-secondary" disabled>Cancel</button>
+
+  <div id="status">Initializing...</div>
+
+  <!-- Load ResponsiveVoice from CDN -->
+  <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
+  <script>
+    // The IIFE auto-creates window.responsiveVoice as an instance
+    const rv = window.responsiveVoice;
+
+    const textInput = document.getElementById('text');
+    const speakBtn = document.getElementById('speakBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const status = document.getElementById('status');
+    const demoBadge = document.getElementById('demoBadge');
+
+    rv.addEventListener('OnReady', () => {
+      status.textContent = 'Ready! Click "Speak" to hear the text.';
+      speakBtn.disabled = false;
+      if (rv.isDemoMode()) demoBadge.hidden = false;
+    });
+
+    rv.addEventListener('OnStart', () => {
+      status.textContent = 'Speaking...';
+      speakBtn.disabled = true;
+      cancelBtn.disabled = false;
+    });
+
+    rv.addEventListener('OnEnd', () => {
+      status.textContent = 'Finished speaking.';
+      speakBtn.disabled = false;
+      cancelBtn.disabled = true;
+    });
+
+    rv.addEventListener('OnError', (e) => {
+      status.textContent = `Error: ${e.error?.message || 'Unknown error'}`;
+      speakBtn.disabled = false;
+      cancelBtn.disabled = true;
+    });
+
+    // Initialize ResponsiveVoice.
+    // Without an API key the library runs in demo mode (browser-native voices only);
+    // the "Demo Mode" badge in the header above indicates this state.
+    rv.init({
+      // Get a free API key at https://responsivevoice.org/register
+      // apiKey: 'YOUR_RESPONSIVEVOICE_API_KEY',
+    }).catch(err => {
+      status.textContent = `Failed to initialize: ${err.message}`;
+    });
+
+    // Button handlers
+    speakBtn.addEventListener('click', () => {
+      const text = textInput.value.trim();
+      if (text) {
+        rv.speak(text);
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      rv.cancel();
+      status.textContent = 'Cancelled.';
+      speakBtn.disabled = false;
+      cancelBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>

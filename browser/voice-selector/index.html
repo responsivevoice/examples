@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <title>ResponsiveVoice - Voice Selector Example</title>
+  <link rel="stylesheet" href="../shared/demo-base.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../shared/api-key-scaffold.css">
+  <script src="../shared/api-key-scaffold.js"></script>
+</head>
+<body>
+  <a href="../../" class="back-link">&larr; Back to Examples</a>
+  <div class="header">
+    <img src="../../favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+    <h1>Voice Selector</h1>
+    <span id="demoBadge" class="demo-badge" hidden>Demo Mode</span>
+  </div>
+  <p class="subtitle">The second argument to <code>speak()</code> can take three shapes — by name, by pattern, or by query. Pick a mode to see each one in action.</p>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab active" data-mode="name" role="tab">By Name</button>
+    <button type="button" class="tab" data-mode="pattern" role="tab">By Pattern</button>
+    <button type="button" class="tab" data-mode="query" role="tab">By Query</button>
+  </div>
+
+  <!-- ============================== By Name ============================== -->
+  <section id="panel-name" class="mode-panel active" role="tabpanel">
+    <div class="mode-blurb">
+      <strong>String selector.</strong> Pass the exact voice name. Predictable and explicit — but brittle if the voice isn't on the user's platform; the matching chain then picks the closest alternative.
+    </div>
+
+    <div class="filters">
+      <div class="filter-field">
+        <label for="searchInput">Search</label>
+        <input type="text" id="searchInput" placeholder="Voice name…">
+      </div>
+      <div class="filter-field">
+        <label for="langSelect">Language</label>
+        <select id="langSelect"><option value="">All</option></select>
+      </div>
+      <div class="filter-field">
+        <label for="genderSelect">Gender</label>
+        <select id="genderSelect">
+          <option value="">Any</option>
+          <option value="f">Female</option>
+          <option value="m">Male</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="typeSelect">Type</label>
+        <select id="typeSelect">
+          <option value="">Any</option>
+          <option value="standard">Standard (free)</option>
+          <option value="byok">Premium (BYOK — bring your own keys)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <span id="nameCount">—</span>
+      <label><input type="checkbox" id="showDeprecated"> Show deprecated voices</label>
+    </div>
+
+    <div class="voice-table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Language</th><th>Gender</th><th>Type</th></tr></thead>
+        <tbody id="nameTbody"><tr><td colspan="4" class="empty">Initializing…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== By Pattern ============================== -->
+  <section id="panel-pattern" class="mode-panel" role="tabpanel">
+    <div class="mode-blurb">
+      <strong>RegExp selector.</strong> Match any voice whose name fits the pattern — useful when you want a family of voices ("any Portuguese variant") rather than one specific name. The first match wins.
+    </div>
+
+    <div class="pattern-row">
+      <div class="filter-field">
+        <label for="patternInput">Pattern</label>
+        <input type="text" id="patternInput" class="mono" value="English.*Female" placeholder="e.g. Portuguese">
+      </div>
+      <div class="filter-field">
+        <label for="flagsInput">Flags</label>
+        <input type="text" id="flagsInput" class="mono" value="i" placeholder="i, g, …">
+      </div>
+    </div>
+    <div class="pattern-error" id="patternError"></div>
+
+    <div class="toolbar">
+      <span id="patternCount">—</span>
+      <span style="font-size:0.75rem">First match wins; others greyed.</span>
+    </div>
+
+    <div class="voice-table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Language</th><th>Match</th></tr></thead>
+        <tbody id="patternTbody"><tr><td colspan="3" class="empty">Initializing…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== By Query ============================== -->
+  <section id="panel-query" class="mode-panel" role="tabpanel">
+    <div class="mode-blurb">
+      <p style="margin:0"><strong>VoiceQuery selector.</strong> A structured filter object — the same JSON-serializable shape that the SDKs in other languages (Python, Go, PHP, Java) and server-side configs use. Every field you set must be true for a voice to match (logical AND).</p>
+      <p style="margin:0.5rem 0 0"><em>Note:</em> <code>provider</code> and <code>isByok: true</code> both target premium voices that route through BYOK (bring-your-own-keys) services.</p>
+    </div>
+
+    <div class="filters">
+      <div class="filter-field">
+        <label for="qLang">lang (BCP-47 prefix)</label>
+        <input type="text" id="qLang" class="mono" value="en" placeholder="e.g. en, en-GB, pt">
+      </div>
+      <div class="filter-field">
+        <label for="qGender">gender</label>
+        <select id="qGender">
+          <option value="">— any —</option>
+          <option value="f">f (female)</option>
+          <option value="m">m (male)</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="qProvider">provider <span style="color:var(--text-muted);font-weight:400">(premium)</span></label>
+        <select id="qProvider"><option value="">— any —</option></select>
+      </div>
+      <div class="filter-field">
+        <label for="qByok">isByok <span style="color:var(--text-muted);font-weight:400">(premium)</span></label>
+        <select id="qByok">
+          <option value="">— any —</option>
+          <option value="true">true (premium only)</option>
+          <option value="false">false (standard / free only)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <span id="queryCount">—</span>
+      <span style="font-size:0.75rem">Showing client-side preview of matches.</span>
+    </div>
+
+    <div class="voice-table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Language</th><th>Gender</th><th>Provider</th></tr></thead>
+        <tbody id="queryTbody"><tr><td colspan="4" class="empty">Initializing…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== Preview (shared) ============================== -->
+  <div class="preview">
+    <h2>Preview</h2>
+    <div class="preview-row">
+      <input type="text" id="previewText" value="The quick brown fox jumps over the lazy dog.">
+      <button type="button" id="speakBtn" disabled>Speak</button>
+      <button type="button" id="stopBtn" class="button-secondary" disabled>Stop</button>
+    </div>
+    <pre class="snippet" id="codeSnippet">// Choose a voice above to see the speak() call here.</pre>
+  </div>
+
+  <div id="status">Initializing…</div>
+
+  <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
+  <script>
+    const rv = window.responsiveVoice;
+
+    const tabs = document.querySelectorAll('.tab');
+    const panels = {
+      name: document.getElementById('panel-name'),
+      pattern: document.getElementById('panel-pattern'),
+      query: document.getElementById('panel-query'),
+    };
+
+    // Mode "name" elements
+    const searchInput = document.getElementById('searchInput');
+    const langSelect = document.getElementById('langSelect');
+    const genderSelect = document.getElementById('genderSelect');
+    const typeSelect = document.getElementById('typeSelect');
+    const showDeprecated = document.getElementById('showDeprecated');
+    const nameCount = document.getElementById('nameCount');
+    const nameTbody = document.getElementById('nameTbody');
+
+    // Mode "pattern" elements
+    const patternInput = document.getElementById('patternInput');
+    const flagsInput = document.getElementById('flagsInput');
+    const patternError = document.getElementById('patternError');
+    const patternCount = document.getElementById('patternCount');
+    const patternTbody = document.getElementById('patternTbody');
+
+    // Mode "query" elements
+    const qLang = document.getElementById('qLang');
+    const qGender = document.getElementById('qGender');
+    const qProvider = document.getElementById('qProvider');
+    const qByok = document.getElementById('qByok');
+    const queryCount = document.getElementById('queryCount');
+    const queryTbody = document.getElementById('queryTbody');
+
+    // Shared elements
+    const previewText = document.getElementById('previewText');
+    const speakBtn = document.getElementById('speakBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const codeSnippet = document.getElementById('codeSnippet');
+    const status = document.getElementById('status');
+    const demoBadge = document.getElementById('demoBadge');
+
+    let allVoices = [];
+    let mode = 'name';
+    let selectedName = null;
+
+    rv.addEventListener('OnReady', () => {
+      allVoices = rv.getVoices();
+      populateLanguages(allVoices);
+      populateProviders(allVoices);
+      renderName();
+      renderPattern();
+      renderQuery();
+      status.textContent = `Loaded ${allVoices.length} voices.`;
+      if (rv.isDemoMode()) demoBadge.hidden = false;
+    });
+
+    rv.addEventListener('OnStart', () => { stopBtn.disabled = false; status.textContent = 'Speaking…'; });
+    rv.addEventListener('OnEnd', () => { stopBtn.disabled = true; status.textContent = 'Done.'; });
+    rv.addEventListener('OnError', (e) => {
+      stopBtn.disabled = true;
+      status.textContent = `Error: ${e.error?.message || 'unknown'}`;
+    });
+
+    rv.init({ /* apiKey: 'YOUR_RESPONSIVEVOICE_API_KEY' */ }).catch(err => {
+      status.textContent = `Failed to initialize: ${err.message}`;
+    });
+
+    // ----------------------------------------------------------------------
+    // Tabs
+    // ----------------------------------------------------------------------
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => { t.classList.remove('active'); });
+        tab.classList.add('active');
+        mode = tab.dataset.mode;
+        Object.entries(panels).forEach(([k, p]) => {
+          p.classList.toggle('active', k === mode);
+        });
+        updateSnippet();
+      });
+    });
+
+    // ----------------------------------------------------------------------
+    // Mode: By Name
+    // ----------------------------------------------------------------------
+    function matchesNameFilters(v, f) {
+      if (!f.includeDeprecated && v.deprecated) return false;
+      if (f.search && !v.name.toLowerCase().includes(f.search)) return false;
+      if (f.lang && v.lang !== f.lang) return false;
+      if (f.gender && v.gender !== f.gender) return false;
+      if (f.type === 'standard' && v.isByok) return false;
+      if (f.type === 'byok' && !v.isByok) return false;
+      return true;
+    }
+
+    function renderName() {
+      const f = {
+        search: searchInput.value.trim().toLowerCase(),
+        lang: langSelect.value,
+        gender: genderSelect.value,
+        type: typeSelect.value,
+        includeDeprecated: showDeprecated.checked,
+      };
+      const filtered = allVoices.filter(v => matchesNameFilters(v, f));
+      nameCount.textContent = `${filtered.length} of ${allVoices.length} voices`;
+
+      if (filtered.length === 0) {
+        nameTbody.innerHTML = '<tr><td colspan="4" class="empty">No voices match these filters.</td></tr>';
+        selectedName = null;
+        updateSnippet();
+        return;
+      }
+
+      const stillVisible = filtered.some(v => v.name === selectedName);
+      if (!stillVisible) selectedName = filtered[0].name;
+
+      nameTbody.innerHTML = filtered.map(v => `
+        <tr data-voice="${escapeAttr(v.name)}" class="${v.name === selectedName ? 'selected' : ''}">
+          <td>${escapeHtml(v.name)}${v.deprecated ? ' <span class="tag deprecated">deprecated</span>' : ''}</td>
+          <td>${escapeHtml(langLabel(v.lang || ''))}</td>
+          <td>${v.gender === 'f' ? 'Female' : v.gender === 'm' ? 'Male' : '—'}</td>
+          <td>${v.isByok ? `<span class="tag byok">${escapeHtml(v.provider || 'BYOK')}</span>` : '<span class="tag">Standard</span>'}</td>
+        </tr>
+      `).join('');
+
+      nameTbody.querySelectorAll('tr').forEach(tr => {
+        tr.addEventListener('click', () => {
+          selectedName = tr.dataset.voice;
+          nameTbody.querySelectorAll('tr').forEach(r => { r.classList.remove('selected'); });
+          tr.classList.add('selected');
+          updateSnippet();
+        });
+      });
+
+      updateSnippet();
+    }
+
+    // ----------------------------------------------------------------------
+    // Mode: By Pattern
+    // ----------------------------------------------------------------------
+    function compilePattern() {
+      const source = patternInput.value;
+      const flags = flagsInput.value;
+      if (!source) return null;
+      try {
+        return new RegExp(source, flags);
+      } catch (e) {
+        patternError.textContent = e.message;
+        return undefined; // invalid
+      }
+    }
+
+    function renderPattern() {
+      patternError.textContent = '';
+      const re = compilePattern();
+      if (re === undefined) {
+        patternTbody.innerHTML = '<tr><td colspan="3" class="empty">Invalid RegExp — fix the pattern.</td></tr>';
+        patternCount.textContent = '—';
+        updateSnippet();
+        return;
+      }
+      if (re === null) {
+        patternTbody.innerHTML = '<tr><td colspan="3" class="empty">Type a pattern to see matches.</td></tr>';
+        patternCount.textContent = '—';
+        updateSnippet();
+        return;
+      }
+
+      // Apply same "non-deprecated only" filter as the resolver does.
+      const candidates = allVoices.filter(v => !v.deprecated);
+      const matches = candidates.filter(v => re.test(v.name));
+      patternCount.textContent = `${matches.length} match${matches.length === 1 ? '' : 'es'} of ${candidates.length} active voices`;
+
+      if (matches.length === 0) {
+        patternTbody.innerHTML = '<tr><td colspan="3" class="empty">No voices match this pattern.</td></tr>';
+        updateSnippet();
+        return;
+      }
+
+      patternTbody.innerHTML = matches.map((v, i) => `
+        <tr class="${i === 0 ? 'selected' : 'faded'}">
+          <td>${escapeHtml(v.name)}</td>
+          <td>${escapeHtml(langLabel(v.lang || ''))}</td>
+          <td>${i === 0 ? '<span class="tag match">first match</span>' : ''}</td>
+        </tr>
+      `).join('');
+
+      updateSnippet();
+    }
+
+    // ----------------------------------------------------------------------
+    // Mode: By Query
+    // ----------------------------------------------------------------------
+    function buildQuery() {
+      const q = {};
+      if (qLang.value.trim()) q.lang = qLang.value.trim();
+      if (qGender.value) q.gender = qGender.value;
+      if (qProvider.value) q.provider = qProvider.value;
+      if (qByok.value === 'true') q.isByok = true;
+      if (qByok.value === 'false') q.isByok = false;
+      return q;
+    }
+
+    // Mirror the resolver's semantics from the guide:
+    //   lang     -> BCP-47 prefix match (so "en" matches "en-GB")
+    //   gender   -> exact (after normalizing 'female' -> 'f', 'male' -> 'm')
+    //   provider -> case-insensitive
+    //   isByok   -> exact boolean
+    function matchesLang(vLang, qLang) {
+      if (!qLang) return true;
+      const a = (vLang || '').toLowerCase();
+      const b = qLang.toLowerCase();
+      return a === b || a.startsWith(`${b}-`);
+    }
+    function matchesGender(vGender, qGender) {
+      if (!qGender) return true;
+      const target = qGender === 'female' ? 'f' : qGender === 'male' ? 'm' : qGender;
+      return vGender === target;
+    }
+    function matchesProvider(vProvider, qProvider) {
+      if (!qProvider) return true;
+      return (vProvider || '').toLowerCase() === qProvider.toLowerCase();
+    }
+    function matchesByok(vIsByok, qIsByok) {
+      if (qIsByok === undefined) return true;
+      return Boolean(vIsByok) === qIsByok;
+    }
+
+    function matchesQuery(v, q) {
+      return (
+        matchesLang(v.lang, q.lang) &&
+        matchesGender(v.gender, q.gender) &&
+        matchesProvider(v.provider, q.provider) &&
+        matchesByok(v.isByok, q.isByok)
+      );
+    }
+
+    function renderQuery() {
+      const q = buildQuery();
+      const candidates = allVoices.filter(v => !v.deprecated);
+      const matches = candidates.filter(v => matchesQuery(v, q));
+      const keys = Object.keys(q);
+      queryCount.textContent = keys.length === 0
+        ? `${matches.length} of ${candidates.length} active voices (no filters)`
+        : `${matches.length} match${matches.length === 1 ? '' : 'es'} of ${candidates.length}`;
+
+      if (matches.length === 0) {
+        queryTbody.innerHTML = '<tr><td colspan="4" class="empty">No voices match this query.</td></tr>';
+        updateSnippet();
+        return;
+      }
+
+      queryTbody.innerHTML = matches.slice(0, 200).map((v, i) => `
+        <tr class="${i === 0 ? 'selected' : ''}">
+          <td>${escapeHtml(v.name)}</td>
+          <td>${escapeHtml(langLabel(v.lang || ''))}</td>
+          <td>${v.gender === 'f' ? 'Female' : v.gender === 'm' ? 'Male' : '—'}</td>
+          <td>${escapeHtml(v.provider || (v.isByok ? 'BYOK' : 'Standard'))}</td>
+        </tr>
+      `).join('');
+
+      updateSnippet();
+    }
+
+    // ----------------------------------------------------------------------
+    // Snippet (renders the literal speak() call for the current mode)
+    // ----------------------------------------------------------------------
+    function updateSnippet() {
+      const text = previewText.value || 'Hello!';
+      let body;
+      let canSpeak = false;
+
+      if (mode === 'name') {
+        const voice = selectedName || 'UK English Female';
+        body = `<span class="fn">responsiveVoice.speak</span>(<span class="str">"${escapeHtml(text)}"</span>, <span class="str">"${escapeHtml(voice)}"</span>);`;
+        canSpeak = !!selectedName;
+      } else if (mode === 'pattern') {
+        const source = patternInput.value;
+        const flags = flagsInput.value;
+        const re = compilePattern();
+        if (!source) {
+          body = '<span class="key">// Type a pattern above.</span>';
+        } else if (re === undefined) {
+          body = '<span class="key">// Pattern is invalid; fix the syntax above.</span>';
+        } else {
+          body = `<span class="fn">responsiveVoice.speak</span>(<span class="str">"${escapeHtml(text)}"</span>, /<span class="lit">${escapeHtml(source)}</span>/<span class="lit">${escapeHtml(flags)}</span>);`;
+          canSpeak = true;
+        }
+      } else { // query
+        const q = buildQuery();
+        const keys = Object.keys(q);
+        if (keys.length === 0) {
+          body = '<span class="key">// Set at least one query field above.</span>';
+        } else {
+          const parts = keys.map(k => {
+            const v = q[k];
+            const formatted = typeof v === 'string'
+              ? `<span class="str">"${escapeHtml(v)}"</span>`
+              : `<span class="lit">${v}</span>`;
+            return `<span class="key">${escapeHtml(k)}</span>: ${formatted}`;
+          });
+          body = `<span class="fn">responsiveVoice.speak</span>(<span class="str">"${escapeHtml(text)}"</span>, { ${parts.join(', ')} });`;
+          canSpeak = true;
+        }
+      }
+
+      codeSnippet.innerHTML = body;
+      speakBtn.disabled = !canSpeak;
+    }
+
+    // ----------------------------------------------------------------------
+    // Speak / Stop — uses whichever selector shape the active mode produces
+    // ----------------------------------------------------------------------
+    function speakForCurrentMode() {
+      const text = previewText.value.trim();
+      if (!text) return;
+      rv.cancel();
+
+      if (mode === 'name') {
+        if (!selectedName) return;
+        rv.speak(text, selectedName);
+      } else if (mode === 'pattern') {
+        const re = compilePattern();
+        if (!re) return;
+        rv.speak(text, re);
+      } else {
+        const q = buildQuery();
+        if (Object.keys(q).length === 0) return;
+        rv.speak(text, q);
+      }
+    }
+
+    speakBtn.addEventListener('click', speakForCurrentMode);
+    stopBtn.addEventListener('click', () => {
+      rv.cancel();
+      status.textContent = 'Cancelled.';
+      stopBtn.disabled = true;
+    });
+
+    // Wire all inputs to their renderer + snippet update.
+    [searchInput, langSelect, genderSelect, typeSelect, showDeprecated].forEach(el => {
+      el.addEventListener('input', renderName);
+      el.addEventListener('change', renderName);
+    });
+    [patternInput, flagsInput].forEach(el => {
+      el.addEventListener('input', renderPattern);
+    });
+    [qLang, qGender, qProvider, qByok].forEach(el => {
+      el.addEventListener('input', renderQuery);
+      el.addEventListener('change', renderQuery);
+    });
+    previewText.addEventListener('input', updateSnippet);
+
+    // ----------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------
+    function langLabel(code) {
+      // 'mul' is the BCP-47 / ISO 639-2 code for "multiple languages".
+      // OpenAI uses it because their voices speak many languages without a
+      // primary one — we annotate so the option doesn't look like a typo.
+      return code === 'mul' ? 'mul (multilingual)' : code;
+    }
+
+    function populateLanguages(voices) {
+      const langs = [...new Set(voices.map(v => v.lang).filter(Boolean))].sort();
+      langSelect.innerHTML = '<option value="">All</option>' +
+        langs.map(l => `<option value="${escapeAttr(l)}">${escapeHtml(langLabel(l))}</option>`).join('');
+    }
+
+    function populateProviders(voices) {
+      const providers = [...new Set(voices.map(v => v.provider).filter(Boolean))].sort();
+      qProvider.innerHTML = '<option value="">— any —</option>' +
+        providers.map(p => `<option value="${escapeAttr(p)}">${escapeHtml(p)}</option>`).join('');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = String(str);
+      return div.innerHTML;
+    }
+    function escapeAttr(str) {
+      return String(str).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

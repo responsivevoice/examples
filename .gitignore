@@ -1,0 +1,4 @@
+node_modules/
+.env
+.env.*
+browser/vite/dist/

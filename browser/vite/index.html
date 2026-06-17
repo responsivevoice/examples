@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>ResponsiveVoice - npm + Vite Example</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="header">
+      <img
+        src="./favicon.svg"
+        class="logo"
+        width="32"
+        height="32"
+        alt="ResponsiveVoice logo"
+      />
+      <h1>npm + Vite Example</h1>
+      <span id="demoBadge" class="demo-badge" hidden>Demo Mode</span>
+    </div>
+    <p class="subtitle">
+      ResponsiveVoice imported from npm as an ESM module and bundled by Vite.
+    </p>
+
+    <div class="how-to-run">
+      <strong>How to run this example</strong>
+      <ol>
+        <li>
+          <a href="https://responsivevoice.org/register" target="_blank" rel="noopener">
+            Get a free API key
+          </a>
+          at responsivevoice.org/register
+        </li>
+        <li>Install deps: <code>npm install</code></li>
+        <li>Start the Vite dev server: <code>npm run vite:dev</code></li>
+        <li>
+          Edit <code>src/main.ts</code> — uncomment the <code>apiKey</code> field in
+          <code>rv.init({ ... })</code> and paste your key
+        </li>
+        <li>Open <a href="http://localhost:5173/">http://localhost:5173/</a></li>
+      </ol>
+      <p class="note">
+        For a production bundle: <code>npm run vite:build &amp;&amp; npm run vite:preview</code>.
+        If you're reading this page from a plain static server (not Vite), the
+        <code>&lt;script&gt;</code> tag below will 404 — that's expected; Vite's dev server
+        transpiles the TypeScript entry on the fly.
+      </p>
+    </div>
+
+    <div class="source-note">
+      Same UI as the <code>basic</code> example, but it imports
+      <code>@responsivevoice/core</code> from npm via
+      <code>import { getResponsiveVoice } from '@responsivevoice/core'</code> in
+      <code>src/main.ts</code> — no CDN script tag, no IIFE global. Vite bundles the
+      TypeScript entry for the browser.
+    </div>
+
+    <div class="form-group">
+      <label for="text">Text to speak:</label>
+      <textarea id="text" rows="3">
+Hello! This text-to-speech is powered by @responsivevoice/core, imported from npm and bundled by Vite.</textarea>
+    </div>
+
+    <button type="button" id="speakBtn" disabled>Speak</button>
+    <button type="button" id="cancelBtn" class="button-secondary" disabled>Cancel</button>
+
+    <div id="status">Initializing...</div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <title>ResponsiveVoice - Web Player</title>
+  <link rel="stylesheet" href="../shared/demo-base.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../shared/api-key-scaffold.css">
+  <script src="../shared/api-key-scaffold.js"></script>
+</head>
+<body>
+  <a href="../../" class="back-link">&larr; Back to Examples</a>
+  <div class="header">
+    <img src="../../favicon.svg" class="logo" width="32" height="32" alt="ResponsiveVoice logo">
+    <h1>Web Player</h1>
+    <span id="demoBadge" class="demo-badge" hidden>Demo Mode</span>
+  </div>
+  <p class="subtitle">
+    Inline pill-shaped player with paragraph highlighting, click-to-jump, and a sticky
+    mini-player when you scroll past the main controls. No build step — the feature
+    ships inside the CDN bundle via <code>createFeatureManager()</code>.
+  </p>
+
+  <p id="status">Initializing…</p>
+
+  <!-- The article target. The feature mounts the player before this element,
+       wraps each paragraph in a span, and narrates them in order. The
+       pull-quote carries [data-rv-skip] so the player skips it. -->
+  <article>
+    <h2>Why real-time TTS matters for publishers</h2>
+    <p>
+      The web has drifted toward podcasts and audio-first consumption, but most written
+      articles still arrive as silent text. Readers without the time — or the eyesight —
+      to read everything on a page deserve a playback option that requires nothing from
+      the publisher beyond the content they already have.
+    </p>
+    <p>
+      Traditional text-to-speech widgets generate audio files in advance. That works,
+      but it breaks the moment you publish a new piece, edit an old one, or personalise
+      the text per reader. A real-time engine sidesteps all of that by synthesising
+      speech on demand, from the live DOM, at the moment someone clicks play.
+    </p>
+
+    <div class="pullquote" data-rv-skip>
+      This block has <code>data-rv-skip</code> on it, so the player steps right past it
+      and keeps the flow of the article intact.
+    </div>
+
+    <h2>The player UX</h2>
+    <p>
+      The main player sits inline above the article — a pill-shaped control strip with
+      play/pause, speed cycling, paragraph skip controls, and a live progress bar. When
+      you scroll past it, a compact mini-player appears in the bottom-left corner so
+      the controls follow you down the page.
+    </p>
+    <p>
+      Clicking on any paragraph jumps the narration to that block — at the next
+      paragraph boundary, to keep things predictable.
+    </p>
+
+    <h2>Paragraph-boundary semantics</h2>
+    <p>
+      Pause, skip forward, and skip back all take effect at the next paragraph boundary
+      rather than cutting speech mid-sentence. This is a deliberate v1 choice: it keeps
+      the feature plugin free of a dependency on the core library, and it avoids the
+      subtle bugs that come with mid-utterance cancellation.
+    </p>
+    <ul>
+      <li>Pause → current paragraph finishes, narration stops there.</li>
+      <li>Skip forward → current paragraph finishes, then jumps ahead.</li>
+      <li>Click a paragraph → same pattern, but the jump target is whichever one you clicked.</li>
+    </ul>
+
+    <h2>Wrap-up</h2>
+    <p>
+      If everything works, you should hear this article read top to bottom in sequence,
+      with the active paragraph highlighted as it plays. Try changing speed mid-playback,
+      skipping around, and scrolling to see the mini-player appear.
+    </p>
+  </article>
+
+  <!-- Second article — tests multi-mount via the init selector. Both
+       articles match the default `selector: 'article'`, so each gets its
+       own player. Starting playback on one resets the other to idle. -->
+  <article>
+    <h2>Sidebar story: the case for shorter pieces</h2>
+    <p>
+      Every page can carry several distinct narratable units. A sidebar story, a
+      related-post teaser, a comments digest — each deserves its own play control
+      rather than being lumped into the main article.
+    </p>
+    <p>
+      Click play here while the article above is narrating: the upper player
+      resets to its idle state and this one takes over. There's only ever one
+      active narrator on the page.
+    </p>
+  </article>
+
+  <!-- Imperative-mount target — populated programmatically below to test
+       `rv.webPlayer.mount(...)` on dynamically-added content. -->
+  <section id="dynamic-area"></section>
+
+  <!-- Load ResponsiveVoice from CDN. The IIFE bundle already registers every
+       built-in feature via createFeatureManager(), so WebPlayerFeature
+       travels in the global download with no extra imports. -->
+  <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
+  <script>
+    const rv = window.responsiveVoice;
+    const status = document.getElementById('status');
+    const demoBadge = document.getElementById('demoBadge');
+
+    function setStatus(msg) { status.textContent = msg; }
+
+    rv.addEventListener('OnReady', () => {
+      if (rv.isDemoMode()) demoBadge.hidden = false;
+      setStatus('Ready — click play on any of the three players to test single-active-narrator coordination.');
+
+      // Imperative-mount demo: populate the dynamic section after init and
+      // attach a player to it via the imperative API. Mirrors the SPA / lazy-
+      // load pattern where content arrives after the page (and rv.init()) has
+      // already settled.
+      const dynamic = document.getElementById('dynamic-area');
+      dynamic.innerHTML = `
+        <article>
+          <h2>Dynamically-mounted article</h2>
+          <p>This article was injected after rv.init(), then mounted explicitly via
+          rv.webPlayer.mount('#dynamic-area &gt; article', { theme: 'neutral' }).
+          The same single-active-narrator coordination applies — start it and the
+          other two players reset.</p>
+          <p>Use this pattern for SPA route changes, lazy-loaded sections, or any
+          content that wasn't in the DOM at init time.</p>
+        </article>
+      `;
+      rv.webPlayer?.mount('#dynamic-area > article', { theme: 'neutral' });
+    });
+
+    rv.addEventListener('OnError', (payload) => {
+      setStatus(`Error: ${payload?.error?.message ?? 'unknown'}`);
+    });
+
+    rv.debug = true;
+
+    // Init-time `features` override turns the web player on for this demo.
+    // Dashboard users would flip this flag via their dashboard; this override
+    // is just so the example works without a dashboard round-trip.
+    rv.init({
+      // Get a free API key at https://responsivevoice.org/register
+      // apiKey: 'YOUR_RESPONSIVEVOICE_API_KEY',
+      features: {
+        webPlayer: {
+          enabled: true,
+          selector: 'article',
+          paragraphSelector: 'p, h2, li',
+          position: 'before',
+          theme: 'responsivevoice',   // brand purple #7A57EE
+          // theme: 'neutral'           // default — slate/pink
+          // theme: { accent: '#ff6b35', fill: '#ff6b35' }  // partial override
+
+          // controls, navigation, and layout each accept partial overrides;
+          // missing fields keep their defaults (everything on, layout shrink+block).
+          // controls: { progress: true, time: true, skip: true, speed: true, brand: true },
+          // navigation: { paragraphHighlight: true, paragraphClick: true },
+          // layout: { mode: 'shrink', display: 'block' },
+          // layout: { mode: 'fill' },           // pill stretches across container
+          // layout: { display: 'inline' },      // pill flows with surrounding text
+          // controls: { skip: false, brand: false },  // minimal play+speed+progress pill
+          // miniPlayer: false,                  // disable the floating mini-player
+          //
+          // Mini-player position (default 'bottom-left'):
+          // miniPlayer: { enabled: true, position: 'bottom-right' },
+          // miniPlayer: { position: { top: '80px', right: '20px' } },
+          //
+          // Mini-player entrance/exit animation (default 'slide'):
+          // miniPlayer: { animation: 'fade' },   // 'none', 'fade', 'slide', or 'pop'
+          //
+          // Custom mount target (otherwise relative to `selector`):
+          // position: { target: '#player-slot', at: 'inside' },
+          // position: { target: '#site-header', at: 'after' },
+        },
+      },
+    }).catch((err) => {
+      setStatus(`Failed to initialise: ${err.message}`);
+    });
+
+    // Multi-mount demo: when the selector matches more than one top-level
+    // element, the player auto-mounts on each. Uncomment below to add a
+    // sidebar story that gets its own player.
+    //
+    // const sidebar = document.createElement('article');
+    // sidebar.innerHTML = '<h2>Sidebar story</h2><p>Brief paragraph.</p>';
+    // document.body.appendChild(sidebar);
+
+    // Imperative mount example: for content fetched after rv.init() (SPAs,
+    // lazy sections), call rv.webPlayer?.mount(...) once the element is in
+    // the DOM. The handle's unmount() tears it down on demand.
+    //
+    // fetch('/article/123').then((r) => r.text()).then((html) => {
+    //   const el = document.getElementById('dynamic-area');
+    //   el.innerHTML = html;
+    //   const handle = rv.webPlayer?.mount(el, { theme: 'neutral' });
+    //   // later: handle?.unmount();
+    // });
+  </script>
+</body>
+</html>
