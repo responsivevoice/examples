@@ -17,8 +17,8 @@
     "vite:preview": "vite preview browser/vite"
   },
   "dependencies": {
-    "@responsivevoice/api-client": "^2.0.0",
-    "@responsivevoice/core": "^2.0.0"
+    "@responsivevoice/api-client": "^2.0.1",
+    "@responsivevoice/core": "^2.0.1"
   },
   "devDependencies": {
     "dotenv": "^17.4.2",
